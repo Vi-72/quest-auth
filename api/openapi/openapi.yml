@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: Quest Auth Service
+  version: 1.0.0
+  description: API for user authentication and registration.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '500':
+          description: Internal server error
+
+  /auth/login:
+    post:
+      summary: User login
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        phone:
+          type: string
+          pattern: '^\+[1-9]\d{6,14}$'
+          example: "+1234567890"
+        name:
+          type: string
+          minLength: 1
+          example: "John Doe"
+        password:
+          type: string
+          minLength: 8
+          example: "securepassword123"
+      required:
+        - email
+        - phone
+        - name
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          example: "securepassword123"
+      required:
+        - email
+        - password
+
+    RegisterResponse:
+      type: object
+      properties:
+        userID:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          example: "user@example.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        name:
+          type: string
+          example: "John Doe"
+      required:
+        - userID
+        - email
+        - phone
+        - name
+
+    LoginResponse:
+      type: object
+      properties:
+        userID:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          example: "user@example.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        name:
+          type: string
+          example: "John Doe"
+      required:
+        - userID
+        - email
+        - phone
+        - name
+
+    BadRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "bad-request"
+        title:
+          type: string
+          example: "Bad Request"
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: "validation failed: field 'email' is required"
+      required:
+        - type
+        - title
+        - status
+        - detail
+
+    Unauthorized:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "unauthorized"
+        title:
+          type: string
+          example: "Unauthorized"
+        status:
+          type: integer
+          example: 401
+        detail:
+          type: string
+          example: "invalid credentials"
+      required:
+        - type
+        - title
+        - status
+        - detail
