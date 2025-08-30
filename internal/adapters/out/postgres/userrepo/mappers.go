@@ -8,18 +8,18 @@ import (
 )
 
 // ToEntity преобразует DTO в доменную сущность User
-func (dto UserDTO) ToEntity() (auth.User, error) {
+func (dto UserDTO) ToEntity() (*auth.User, error) {
 	email, err := kernel.NewEmail(dto.Email)
 	if err != nil {
-		return auth.User{}, errs.WrapInfrastructureError("mapping user email", err)
+		return nil, errs.WrapInfrastructureError("mapping user email", err)
 	}
 
 	phone, err := kernel.NewPhone(dto.Phone)
 	if err != nil {
-		return auth.User{}, errs.WrapInfrastructureError("mapping user phone", err)
+		return nil, errs.WrapInfrastructureError("mapping user phone", err)
 	}
 
-	user := auth.User{
+	user := &auth.User{
 		BaseAggregate: ddd.NewBaseAggregate(dto.ID),
 		Email:         email,
 		Phone:         phone,
@@ -33,7 +33,7 @@ func (dto UserDTO) ToEntity() (auth.User, error) {
 }
 
 // FromEntity преобразует доменную сущность User в DTO
-func FromEntity(user auth.User) UserDTO {
+func FromEntity(user *auth.User) UserDTO {
 	return UserDTO{
 		ID:           user.ID(),
 		Email:        user.Email.String(),

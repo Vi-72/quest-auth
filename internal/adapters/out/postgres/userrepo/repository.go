@@ -21,7 +21,7 @@ func NewRepository(db *gorm.DB) *Repository {
 }
 
 // Create сохраняет нового пользователя
-func (r *Repository) Create(user auth.User) error {
+func (r *Repository) Create(user *auth.User) error {
 	dto := FromEntity(user)
 
 	if err := r.db.Create(&dto).Error; err != nil {
@@ -32,52 +32,52 @@ func (r *Repository) Create(user auth.User) error {
 }
 
 // GetByID находит пользователя по ID
-func (r *Repository) GetByID(id uuid.UUID) (auth.User, error) {
+func (r *Repository) GetByID(id uuid.UUID) (*auth.User, error) {
 	var dto UserDTO
 	err := r.db.Where("id = ?", id).First(&dto).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return auth.User{}, errs.NewNotFoundError("user", id.String())
+			return nil, errs.NewNotFoundError("user", id.String())
 		}
-		return auth.User{}, errs.WrapInfrastructureError("getting user by id", err)
+		return nil, errs.WrapInfrastructureError("getting user by id", err)
 	}
 
 	return dto.ToEntity()
 }
 
 // GetByEmail находит пользователя по email
-func (r *Repository) GetByEmail(email kernel.Email) (auth.User, error) {
+func (r *Repository) GetByEmail(email kernel.Email) (*auth.User, error) {
 	var dto UserDTO
 	err := r.db.Where("email = ?", email.String()).First(&dto).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return auth.User{}, errs.NewNotFoundError("user", email.String())
+			return nil, errs.NewNotFoundError("user", email.String())
 		}
-		return auth.User{}, errs.WrapInfrastructureError("getting user by email", err)
+		return nil, errs.WrapInfrastructureError("getting user by email", err)
 	}
 
 	return dto.ToEntity()
 }
 
 // GetByPhone находит пользователя по телефону
-func (r *Repository) GetByPhone(phone kernel.Phone) (auth.User, error) {
+func (r *Repository) GetByPhone(phone kernel.Phone) (*auth.User, error) {
 	var dto UserDTO
 	err := r.db.Where("phone = ?", phone.String()).First(&dto).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return auth.User{}, errs.NewNotFoundError("user", phone.String())
+			return nil, errs.NewNotFoundError("user", phone.String())
 		}
-		return auth.User{}, errs.WrapInfrastructureError("getting user by phone", err)
+		return nil, errs.WrapInfrastructureError("getting user by phone", err)
 	}
 
 	return dto.ToEntity()
 }
 
 // Update обновляет существующего пользователя
-func (r *Repository) Update(user auth.User) error {
+func (r *Repository) Update(user *auth.User) error {
 	dto := FromEntity(user)
 
 	result := r.db.Where("id = ?", user.ID()).Updates(&dto)

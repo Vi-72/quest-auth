@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
 	"quest-auth/internal/pkg/errs"
@@ -14,30 +16,34 @@ type LoginUserCommand struct {
 
 // LoginUserResult — результат входа
 type LoginUserResult struct {
-	UserID string
-	Email  string
-	Phone  string
-	Name   string
+	User         UserInfo
+	AccessToken  string
+	RefreshToken string
+	TokenType    string
+	ExpiresIn    int64
 }
 
 // LoginUserHandler — обработчик входа пользователя
 type LoginUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
+	jwtService     ports.JWTService
 }
 
 func NewLoginUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
+	jwtService ports.JWTService,
 ) *LoginUserHandler {
 	return &LoginUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
+		jwtService:     jwtService,
 	}
 }
 
 // Handle выполняет вход пользователя
-func (h *LoginUserHandler) Handle(cmd LoginUserCommand) (LoginUserResult, error) {
+func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (LoginUserResult, error) {
 	// Валидация email
 	email, err := kernel.NewEmail(cmd.Email)
 	if err != nil {
@@ -65,10 +71,21 @@ func (h *LoginUserHandler) Handle(cmd LoginUserCommand) (LoginUserResult, error)
 		return LoginUserResult{}, err
 	}
 
+	// Генерация токенов
+	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID(), user.Email.String())
+	if err != nil {
+		return LoginUserResult{}, err
+	}
+
 	return LoginUserResult{
-		UserID: user.ID().String(),
-		Email:  user.Email.String(),
-		Phone:  user.Phone.String(),
-		Name:   user.Name,
+		User: UserInfo{
+			ID:    user.ID().String(),
+			Email: user.Email.String(),
+			Name:  user.Name,
+		},
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		TokenType:    tokenPair.TokenType,
+		ExpiresIn:    tokenPair.ExpiresIn,
 	}, nil
 }

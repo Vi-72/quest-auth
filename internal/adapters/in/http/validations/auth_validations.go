@@ -1,9 +1,7 @@
 package validations
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 
 	"quest-auth/internal/generated/servers"
@@ -31,80 +29,6 @@ type ValidationError struct {
 
 func (e ValidationError) Error() string {
 	return fmt.Sprintf("validation failed: field '%s' %s", e.Field, e.Message)
-}
-
-// ValidateRegisterUserRequest валидирует запрос на регистрацию
-func ValidateRegisterUserRequest(body io.Reader) (RegisterUserRequest, error) {
-	var req RegisterUserRequest
-	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "body",
-			Message: "invalid JSON format",
-		}
-	}
-
-	// Валидация email
-	if strings.TrimSpace(req.Email) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "email",
-			Message: "is required",
-		}
-	}
-
-	// Валидация phone
-	if strings.TrimSpace(req.Phone) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "phone",
-			Message: "is required",
-		}
-	}
-
-	// Валидация name
-	if strings.TrimSpace(req.Name) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "name",
-			Message: "is required",
-		}
-	}
-
-	// Валидация password
-	if len(req.Password) == 0 {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "password",
-			Message: "is required",
-		}
-	}
-
-	return req, nil
-}
-
-// ValidateLoginUserRequest валидирует запрос на вход
-func ValidateLoginUserRequest(body io.Reader) (LoginUserRequest, error) {
-	var req LoginUserRequest
-	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return LoginUserRequest{}, ValidationError{
-			Field:   "body",
-			Message: "invalid JSON format",
-		}
-	}
-
-	// Валидация email
-	if strings.TrimSpace(req.Email) == "" {
-		return LoginUserRequest{}, ValidationError{
-			Field:   "email",
-			Message: "is required",
-		}
-	}
-
-	// Валидация password
-	if len(req.Password) == 0 {
-		return LoginUserRequest{}, ValidationError{
-			Field:   "password",
-			Message: "is required",
-		}
-	}
-
-	return req, nil
 }
 
 // ValidateRegisterUserRequestBody валидирует OpenAPI тип для регистрации

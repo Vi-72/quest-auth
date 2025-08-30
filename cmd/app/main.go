@@ -52,14 +52,17 @@ func main() {
 
 func getConfigs() cmd.Config {
 	return cmd.Config{
-		HttpPort:            getEnv("HTTP_PORT"),
-		DbHost:              getEnv("DB_HOST"),
-		DbPort:              getEnv("DB_PORT"),
-		DbUser:              getEnv("DB_USER"),
-		DbPassword:          getEnv("DB_PASSWORD"),
-		DbName:              getEnv("DB_NAME"),
-		DbSslMode:           getEnv("DB_SSLMODE"),
-		EventGoroutineLimit: getEnvInt("EVENT_GOROUTINE_LIMIT"),
+		HttpPort:                getEnv("HTTP_PORT"),
+		DbHost:                  getEnv("DB_HOST"),
+		DbPort:                  getEnv("DB_PORT"),
+		DbUser:                  getEnv("DB_USER"),
+		DbPassword:              getEnv("DB_PASSWORD"),
+		DbName:                  getEnv("DB_NAME"),
+		DbSslMode:               getEnv("DB_SSLMODE"),
+		EventGoroutineLimit:     getEnvInt("EVENT_GOROUTINE_LIMIT"),
+		JWTSecretKey:            getEnv("JWT_SECRET_KEY"),
+		JWTAccessTokenDuration:  getEnvInt("JWT_ACCESS_TOKEN_DURATION"),
+		JWTRefreshTokenDuration: getEnvInt("JWT_REFRESH_TOKEN_DURATION"),
 	}
 }
 

@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"quest-auth/internal/core/domain/model/auth"
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
@@ -17,30 +19,34 @@ type RegisterUserCommand struct {
 
 // RegisterUserResult — результат регистрации
 type RegisterUserResult struct {
-	UserID string
-	Email  string
-	Phone  string
-	Name   string
+	User         UserInfo
+	AccessToken  string
+	RefreshToken string
+	TokenType    string
+	ExpiresIn    int64
 }
 
 // RegisterUserHandler — обработчик регистрации пользователя
 type RegisterUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
+	jwtService     ports.JWTService
 }
 
 func NewRegisterUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
+	jwtService ports.JWTService,
 ) *RegisterUserHandler {
 	return &RegisterUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
+		jwtService:     jwtService,
 	}
 }
 
 // Handle выполняет регистрацию пользователя
-func (h *RegisterUserHandler) Handle(cmd RegisterUserCommand) (RegisterUserResult, error) {
+func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserCommand) (RegisterUserResult, error) {
 	// Валидация email
 	email, err := kernel.NewEmail(cmd.Email)
 	if err != nil {
@@ -81,7 +87,7 @@ func (h *RegisterUserHandler) Handle(cmd RegisterUserCommand) (RegisterUserResul
 
 	// Сохранение в транзакции
 	err = h.unitOfWork.Execute(func() error {
-		if err := userRepo.Create(user); err != nil {
+		if err := userRepo.Create(&user); err != nil {
 			return err
 		}
 
@@ -93,10 +99,21 @@ func (h *RegisterUserHandler) Handle(cmd RegisterUserCommand) (RegisterUserResul
 		return RegisterUserResult{}, err
 	}
 
+	// Генерация токенов
+	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID(), user.Email.String())
+	if err != nil {
+		return RegisterUserResult{}, err
+	}
+
 	return RegisterUserResult{
-		UserID: user.ID().String(),
-		Email:  user.Email.String(),
-		Phone:  user.Phone.String(),
-		Name:   user.Name,
+		User: UserInfo{
+			ID:    user.ID().String(),
+			Email: user.Email.String(),
+			Name:  user.Name,
+		},
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		TokenType:    tokenPair.TokenType,
+		ExpiresIn:    tokenPair.ExpiresIn,
 	}, nil
 }

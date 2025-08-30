@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"log"
-	"quest-auth/internal/generated/servers"
+	"time"
 
 	"quest-auth/internal/adapters/in/http"
+	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
 	"quest-auth/internal/adapters/out/postgres/eventrepo"
 	"quest-auth/internal/core/application/usecases/auth"
 	"quest-auth/internal/core/ports"
+	"quest-auth/internal/generated/servers"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +20,7 @@ type CompositionRoot struct {
 	db             *gorm.DB
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
+	jwtService     ports.JWTService
 	closers        []Closer
 }
 
@@ -34,11 +37,20 @@ func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
 		log.Fatalf("cannot create EventPublisher: %v", err)
 	}
 
+	// Create JWT Service
+	jwtService := jwt.NewService(
+		configs.JWTSecretKey,
+		time.Duration(configs.JWTAccessTokenDuration)*time.Minute,
+		time.Duration(configs.JWTRefreshTokenDuration)*time.Hour,
+	)
+
 	return &CompositionRoot{
 		configs:        configs,
 		db:             db,
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
+		jwtService:     jwtService,
+		closers:        []Closer{},
 	}
 }
 
@@ -52,16 +64,21 @@ func (cr *CompositionRoot) EventPublisher() ports.EventPublisher {
 	return cr.eventPublisher
 }
 
+// JWTService returns JWT service
+func (cr *CompositionRoot) JWTService() ports.JWTService {
+	return cr.jwtService
+}
+
 // Auth Use Case Handlers
 
 // NewRegisterUserHandler creates a handler for user registration
 func (cr *CompositionRoot) NewRegisterUserHandler() *auth.RegisterUserHandler {
-	return auth.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher())
+	return auth.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
 }
 
 // NewLoginUserHandler creates a handler for user login
 func (cr *CompositionRoot) NewLoginUserHandler() *auth.LoginUserHandler {
-	return auth.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher())
+	return auth.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
 }
 
 // HTTP Handlers

@@ -26,30 +26,39 @@ func (a *ApiHandler) Login(ctx context.Context, request servers.LoginRequestObje
 		Password: validatedData.Password,
 	}
 
-	result, err := a.loginHandler.Handle(cmd)
+	result, err := a.loginHandler.Handle(ctx, cmd)
 	if err != nil {
 		// Pass error to middleware for proper handling (400 for validation, 404 for not found, 500 for infrastructure)
 		return nil, err
 	}
 
-	// Parse UserID
-	userID, err := uuid.Parse(result.UserID)
+	// Success response
+	apiResult := AuthResponse{
+		User: UserResponse{
+			ID:    result.User.ID,
+			Email: result.User.Email,
+			Name:  result.User.Name,
+		},
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+		TokenType:    result.TokenType,
+		ExpiresIn:    result.ExpiresIn,
+	}
+	// Parse user ID
+	userID, err := uuid.Parse(apiResult.User.ID)
 	if err != nil {
-		badRequest := problems.NewBadRequest("invalid user id format")
-		return servers.Login400JSONResponse(servers.BadRequest{
-			Type:   badRequest.Type,
-			Title:  badRequest.Title,
-			Status: badRequest.Status,
-			Detail: badRequest.Detail,
-		}), nil
+		return nil, err
 	}
 
-	// Success response
-	apiResult := servers.LoginResponse{
-		UserID: userID,
-		Email:  result.Email,
-		Phone:  result.Phone,
-		Name:   result.Name,
-	}
-	return servers.Login200JSONResponse(apiResult), nil
+	return servers.Login200JSONResponse(servers.LoginResponse{
+		AccessToken:  apiResult.AccessToken,
+		RefreshToken: apiResult.RefreshToken,
+		TokenType:    apiResult.TokenType,
+		ExpiresIn:    int(apiResult.ExpiresIn),
+		User: servers.User{
+			Id:    userID,
+			Email: apiResult.User.Email,
+			Name:  apiResult.User.Name,
+		},
+	}), nil
 }

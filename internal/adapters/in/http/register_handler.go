@@ -28,30 +28,39 @@ func (h *ApiHandler) Register(ctx context.Context, request servers.RegisterReque
 		Password: validatedData.Password,
 	}
 
-	result, err := h.registerHandler.Handle(cmd)
+	result, err := h.registerHandler.Handle(ctx, cmd)
 	if err != nil {
-		// Use problems package to map domain errors to HTTP responses
-		return problems.ConvertToRegisterResponse(err), nil
-	}
-
-	// Parse UserID
-	userID, err := uuid.Parse(result.UserID)
-	if err != nil {
-		badRequest := problems.NewBadRequest("invalid user id format")
-		return servers.Register400JSONResponse(servers.BadRequest{
-			Type:   badRequest.Type,
-			Title:  badRequest.Title,
-			Status: badRequest.Status,
-			Detail: badRequest.Detail,
-		}), nil
+		// Pass error to middleware for proper handling (400 for validation, 404 for not found, 500 for infrastructure)
+		return nil, err
 	}
 
 	// Success response
-	apiResult := servers.RegisterResponse{
-		UserID: userID,
-		Email:  result.Email,
-		Phone:  result.Phone,
-		Name:   result.Name,
+	apiResult := AuthResponse{
+		User: UserResponse{
+			ID:    result.User.ID,
+			Email: result.User.Email,
+			Name:  result.User.Name,
+		},
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+		TokenType:    result.TokenType,
+		ExpiresIn:    result.ExpiresIn,
 	}
-	return servers.Register201JSONResponse(apiResult), nil
+	// Parse user ID
+	userID, err := uuid.Parse(apiResult.User.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return servers.Register201JSONResponse(servers.RegisterResponse{
+		AccessToken:  apiResult.AccessToken,
+		RefreshToken: apiResult.RefreshToken,
+		TokenType:    apiResult.TokenType,
+		ExpiresIn:    int(apiResult.ExpiresIn),
+		User: servers.User{
+			Id:    userID,
+			Email: apiResult.User.Email,
+			Name:  apiResult.User.Name,
+		},
+	}), nil
 }
