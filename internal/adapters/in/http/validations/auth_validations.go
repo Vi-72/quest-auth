@@ -31,6 +31,30 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("validation failed: field '%s' %s", e.Field, e.Message)
 }
 
+// requireNotEmpty проверяет, что строковое значение не пустое после TrimSpace.
+// Если значение пустое, возвращает ValidationError для указанного поля.
+func requireNotEmpty(field, value string) error {
+	if strings.TrimSpace(value) == "" {
+		return ValidationError{
+			Field:   field,
+			Message: "is required",
+		}
+	}
+	return nil
+}
+
+// requireNotZeroLen проверяет, что строка не пустая (без тримминга).
+// Используется, например, для проверки пароля.
+func requireNotZeroLen(field, value string) error {
+	if len(value) == 0 {
+		return ValidationError{
+			Field:   field,
+			Message: "is required",
+		}
+	}
+	return nil
+}
+
 // ValidateRegisterUserRequestBody валидирует OpenAPI тип для регистрации
 func ValidateRegisterUserRequestBody(body *servers.RegisterJSONRequestBody) (RegisterUserRequest, error) {
 	if body == nil {
@@ -49,35 +73,23 @@ func ValidateRegisterUserRequestBody(body *servers.RegisterJSONRequestBody) (Reg
 	}
 
 	// Валидация email
-	if strings.TrimSpace(req.Email) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "email",
-			Message: "is required",
-		}
+	if err := requireNotEmpty("email", req.Email); err != nil {
+		return RegisterUserRequest{}, err
 	}
 
 	// Валидация phone
-	if strings.TrimSpace(req.Phone) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "phone",
-			Message: "is required",
-		}
+	if err := requireNotEmpty("phone", req.Phone); err != nil {
+		return RegisterUserRequest{}, err
 	}
 
 	// Валидация name
-	if strings.TrimSpace(req.Name) == "" {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "name",
-			Message: "is required",
-		}
+	if err := requireNotEmpty("name", req.Name); err != nil {
+		return RegisterUserRequest{}, err
 	}
 
 	// Валидация password
-	if len(req.Password) == 0 {
-		return RegisterUserRequest{}, ValidationError{
-			Field:   "password",
-			Message: "is required",
-		}
+	if err := requireNotZeroLen("password", req.Password); err != nil {
+		return RegisterUserRequest{}, err
 	}
 
 	return req, nil
@@ -99,19 +111,13 @@ func ValidateLoginUserRequestBody(body *servers.LoginJSONRequestBody) (LoginUser
 	}
 
 	// Валидация email
-	if strings.TrimSpace(req.Email) == "" {
-		return LoginUserRequest{}, ValidationError{
-			Field:   "email",
-			Message: "is required",
-		}
+	if err := requireNotEmpty("email", req.Email); err != nil {
+		return LoginUserRequest{}, err
 	}
 
 	// Валидация password
-	if len(req.Password) == 0 {
-		return LoginUserRequest{}, ValidationError{
-			Field:   "password",
-			Message: "is required",
-		}
+	if err := requireNotZeroLen("password", req.Password); err != nil {
+		return LoginUserRequest{}, err
 	}
 
 	return req, nil
