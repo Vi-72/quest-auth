@@ -83,8 +83,8 @@ func (s *Service) GenerateTokenPair(userID uuid.UUID, email string) (*ports.Toke
 	}, nil
 }
 
-// ValidateAccessToken проверяет валидность access токена
-func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, error) {
+// parseToken разбирает и валидирует JWT токен
+func (s *Service) parseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -105,6 +105,16 @@ func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, e
 		return nil, errs.WrapInfrastructureError("token claims", fmt.Errorf("invalid token claims"))
 	}
 
+	return claims, nil
+}
+
+// ValidateAccessToken проверяет валидность access токена
+func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, error) {
+	claims, err := s.parseToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
 	if claims.Type != "access" {
 		return nil, errs.WrapInfrastructureError("token type", fmt.Errorf("token is not an access token"))
 	}
@@ -118,24 +128,9 @@ func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, e
 
 // RefreshTokens обновляет токены по refresh токену
 func (s *Service) RefreshTokens(refreshTokenString string) (*ports.TokenPair, error) {
-	token, err := jwt.ParseWithClaims(refreshTokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return s.secretKey, nil
-	})
-
+	claims, err := s.parseToken(refreshTokenString)
 	if err != nil {
-		return nil, errs.WrapInfrastructureError("parsing refresh token", err)
-	}
-
-	if !token.Valid {
-		return nil, errs.WrapInfrastructureError("refresh token validation", fmt.Errorf("refresh token is invalid"))
-	}
-
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return nil, errs.WrapInfrastructureError("refresh token claims", fmt.Errorf("invalid refresh token claims"))
+		return nil, err
 	}
 
 	if claims.Type != "refresh" {
