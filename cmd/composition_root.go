@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/adapters/in/http"
 	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
@@ -93,4 +94,12 @@ func (cr *CompositionRoot) NewAPIHandler() servers.StrictServerInterface {
 		log.Fatalf("Error initializing HTTP Server: %v", err)
 	}
 	return handlers
+}
+
+// NewGRPCAuthHandler creates gRPC auth handler
+func (cr *CompositionRoot) NewGRPCAuthHandler() *grpc.AuthHandler {
+	return grpc.NewAuthHandler(
+		cr.JWTService(),
+		cr.GetUnitOfWork().UserRepository(),
+	)
 }

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "quest-auth/internal/generated/grpc/auth";
+
+// AuthService предоставляет методы для аутентификации
+service AuthService {
+    // Authenticate проверяет JWT токен и возвращает информацию о пользователе
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+}
+
+// AuthenticateRequest запрос на аутентификацию с JWT токеном
+message AuthenticateRequest {
+    string jwt_token = 1;  // JWT токен для проверки
+}
+
+// AuthenticateResponse ответ с информацией о пользователе
+message AuthenticateResponse {
+    User user = 1;  // Полная информация о пользователе
+}
+
+// User информация о пользователе
+message User {
+    string id = 1;                                // UUID пользователя
+    string full_name = 2;                         // Полное имя
+    string email = 3;                             // Email адрес
+    string phone = 4;                             // Номер телефона
+    google.protobuf.Timestamp created_at = 5;     // Время создания аккаунта
+}
+

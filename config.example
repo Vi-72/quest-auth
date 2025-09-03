@@ -1,5 +1,6 @@
-# HTTP Server Configuration
+# Server Configuration
 HTTP_PORT=8080
+GRPC_PORT=9090
 
 # Database Configuration
 DB_HOST=localhost

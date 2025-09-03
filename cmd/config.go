@@ -2,6 +2,7 @@ package cmd
 
 type Config struct {
 	HttpPort                string
+	GrpcPort                string
 	DbHost                  string
 	DbPort                  string
 	DbUser                  string

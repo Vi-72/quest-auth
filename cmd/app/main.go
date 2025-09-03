@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/joho/godotenv"
 
 	"quest-auth/cmd"
+	grpcAdapter "quest-auth/internal/adapters/in/grpc"
 )
 
 func main() {
@@ -41,18 +43,39 @@ func main() {
 	)
 	defer compositionRoot.CloseAll()
 
-	router := cmd.NewRouter(compositionRoot)
+	// Создаем WaitGroup для ожидания обоих серверов
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	log.Printf("Server running on :%s", configs.HttpPort)
-	err = http.ListenAndServe(":"+configs.HttpPort, router)
-	if err != nil {
-		log.Fatalf("failed to start server: %v", err)
-	}
+	// Запускаем HTTP сервер в горутине
+	go func() {
+		defer wg.Done()
+		router := cmd.NewRouter(compositionRoot)
+		log.Printf("HTTP server running on :%s", configs.HttpPort)
+		err := http.ListenAndServe(":"+configs.HttpPort, router)
+		if err != nil {
+			log.Fatalf("failed to start HTTP server: %v", err)
+		}
+	}()
+
+	// Запускаем gRPC сервер в горутине
+	go func() {
+		defer wg.Done()
+		authHandler := compositionRoot.NewGRPCAuthHandler()
+		err := grpcAdapter.StartServer(configs.GrpcPort, authHandler)
+		if err != nil {
+			log.Fatalf("failed to start gRPC server: %v", err)
+		}
+	}()
+
+	// Ожидаем завершения обоих серверов
+	wg.Wait()
 }
 
 func getConfigs() cmd.Config {
 	return cmd.Config{
 		HttpPort:                getEnv("HTTP_PORT"),
+		GrpcPort:                getEnv("GRPC_PORT"),
 		DbHost:                  getEnv("DB_HOST"),
 		DbPort:                  getEnv("DB_PORT"),
 		DbUser:                  getEnv("DB_USER"),
