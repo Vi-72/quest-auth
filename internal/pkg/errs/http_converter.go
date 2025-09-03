@@ -3,7 +3,6 @@ package errs
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"quest-auth/internal/generated/servers"
 )
@@ -36,12 +35,57 @@ func ToHTTP(err error) HTTPError {
 	// Check for domain validation errors
 	var domainValidationErr *DomainValidationError
 	if errors.As(err, &domainValidationErr) {
-		return HTTPError{
-			Type:       "bad-request",
-			Title:      "Bad Request",
-			Status:     400,
-			Detail:     domainValidationErr.Error(),
-			StatusCode: http.StatusBadRequest,
+		switch domainValidationErr.Field {
+		case "email":
+			if domainValidationErr.Message == "email already exists" {
+				return HTTPError{
+					Type:       "conflict",
+					Title:      "Conflict",
+					Status:     409,
+					Detail:     "Email already exists",
+					StatusCode: http.StatusConflict,
+				}
+			}
+			return HTTPError{
+				Type:       "bad-request",
+				Title:      "Bad Request",
+				Status:     400,
+				Detail:     domainValidationErr.Error(),
+				StatusCode: http.StatusBadRequest,
+			}
+		case "phone":
+			if domainValidationErr.Message == "phone already exists" {
+				return HTTPError{
+					Type:       "conflict",
+					Title:      "Conflict",
+					Status:     409,
+					Detail:     "Phone number already exists",
+					StatusCode: http.StatusConflict,
+				}
+			}
+			return HTTPError{
+				Type:       "bad-request",
+				Title:      "Bad Request",
+				Status:     400,
+				Detail:     domainValidationErr.Error(),
+				StatusCode: http.StatusBadRequest,
+			}
+		case "credentials":
+			return HTTPError{
+				Type:       "unauthorized",
+				Title:      "Unauthorized",
+				Status:     401,
+				Detail:     "Invalid credentials",
+				StatusCode: http.StatusUnauthorized,
+			}
+		default:
+			return HTTPError{
+				Type:       "bad-request",
+				Title:      "Bad Request",
+				Status:     400,
+				Detail:     domainValidationErr.Error(),
+				StatusCode: http.StatusBadRequest,
+			}
 		}
 	}
 
@@ -66,53 +110,6 @@ func ToHTTP(err error) HTTPError {
 			Status:     statusErr.StatusCode,
 			Detail:     statusErr.Error(),
 			StatusCode: statusErr.StatusCode,
-		}
-	}
-
-	// Check for specific validation patterns
-	errMsg := strings.ToLower(err.Error())
-
-	// Email/Phone already exists
-	if strings.Contains(errMsg, "email already exists") {
-		return HTTPError{
-			Type:       "conflict",
-			Title:      "Conflict",
-			Status:     409,
-			Detail:     "Email already exists",
-			StatusCode: http.StatusConflict,
-		}
-	}
-
-	if strings.Contains(errMsg, "phone already exists") {
-		return HTTPError{
-			Type:       "conflict",
-			Title:      "Conflict",
-			Status:     409,
-			Detail:     "Phone number already exists",
-			StatusCode: http.StatusConflict,
-		}
-	}
-
-	// Invalid credentials
-	if strings.Contains(errMsg, "invalid email or password") ||
-		strings.Contains(errMsg, "invalid credentials") {
-		return HTTPError{
-			Type:       "unauthorized",
-			Title:      "Unauthorized",
-			Status:     401,
-			Detail:     "Invalid credentials",
-			StatusCode: http.StatusUnauthorized,
-		}
-	}
-
-	// Validation errors
-	if isValidationError(errMsg) {
-		return HTTPError{
-			Type:       "bad-request",
-			Title:      "Bad Request",
-			Status:     400,
-			Detail:     err.Error(),
-			StatusCode: http.StatusBadRequest,
 		}
 	}
 
@@ -207,25 +204,4 @@ func getTitleFromStatus(status int) string {
 	default:
 		return "Error"
 	}
-}
-
-func isValidationError(errMsg string) bool {
-	validationKeywords := []string{
-		"email",
-		"phone",
-		"password",
-		"name",
-		"invalid",
-		"required",
-		"empty",
-		"too short",
-		"validation",
-	}
-
-	for _, keyword := range validationKeywords {
-		if strings.Contains(errMsg, keyword) {
-			return true
-		}
-	}
-	return false
 }
