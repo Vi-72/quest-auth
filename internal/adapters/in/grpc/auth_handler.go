@@ -40,7 +40,7 @@ func (h *AuthHandler) Authenticate(ctx context.Context, req *authpb.Authenticate
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
 
-	if req.JwtToken == "" {
+	if strings.TrimSpace(req.JwtToken) == "" {
 		return nil, status.Error(codes.InvalidArgument, "jwt_token is required")
 	}
 

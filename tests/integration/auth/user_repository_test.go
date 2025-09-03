@@ -28,7 +28,7 @@ func TestUserRepository_Create_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act
-	err = repo.Create(user)
+	err = repo.Create(&user)
 
 	// Assert
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestUserRepository_GetByEmail_Success(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Act
@@ -77,7 +77,7 @@ func TestUserRepository_GetByPhone_Success(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Act
@@ -101,7 +101,7 @@ func TestUserRepository_EmailExists_True(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Act
@@ -141,7 +141,7 @@ func TestUserRepository_PhoneExists_True(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Act
@@ -164,7 +164,7 @@ func TestUserRepository_Update_Success(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Изменяем имя
@@ -172,7 +172,7 @@ func TestUserRepository_Update_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act
-	err = repo.Update(user)
+	err = repo.Update(&user)
 
 	// Assert
 	require.NoError(t, err)
@@ -195,7 +195,7 @@ func TestUserRepository_Delete_Success(t *testing.T) {
 	user, err := auth.NewUser(email, phone, "John Doe", "password123")
 	require.NoError(t, err)
 
-	err = repo.Create(user)
+	err = repo.Create(&user)
 	require.NoError(t, err)
 
 	// Act
