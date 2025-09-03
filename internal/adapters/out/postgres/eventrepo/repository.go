@@ -87,8 +87,7 @@ func (r *Repository) Publish(ctx context.Context, events ...ddd.DomainEvent) err
 }
 
 // PublishDomainEvents реализует интерфейс для use cases
-func (r *Repository) PublishDomainEvents(events []ddd.DomainEvent) error {
-	ctx := context.Background()
+func (r *Repository) PublishDomainEvents(ctx context.Context, events []ddd.DomainEvent) error {
 	return r.Publish(ctx, events...)
 }
 

@@ -95,9 +95,7 @@ func (u *UnitOfWork) Commit(ctx context.Context) error {
 }
 
 // Execute выполняет операцию в транзакции
-func (u *UnitOfWork) Execute(fn func() error) error {
-	ctx := context.Background()
-
+func (u *UnitOfWork) Execute(ctx context.Context, fn func() error) error {
 	if err := u.Begin(ctx); err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 type EventPublisher interface {
 	Publish(ctx context.Context, events ...ddd.DomainEvent) error
 	PublishAsync(ctx context.Context, events ...ddd.DomainEvent)
-	PublishDomainEvents(events []ddd.DomainEvent) error
+	PublishDomainEvents(ctx context.Context, events []ddd.DomainEvent) error
 }
 
 // NullEventPublisher is a no-op implementation for development
@@ -36,8 +36,7 @@ func (p *NullEventPublisher) PublishAsync(ctx context.Context, events ...ddd.Dom
 	}
 }
 
-func (p *NullEventPublisher) PublishDomainEvents(events []ddd.DomainEvent) error {
+func (p *NullEventPublisher) PublishDomainEvents(ctx context.Context, events []ddd.DomainEvent) error {
 	// Convert slice to variadic and call Publish
-	ctx := context.Background()
 	return p.Publish(ctx, events...)
 }
