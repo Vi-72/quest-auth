@@ -1,9 +1,10 @@
 package problems
 
 import (
-	"strings"
+	"errors"
 
 	"quest-auth/internal/generated/servers"
+	"quest-auth/internal/pkg/errs"
 )
 
 // ConvertToLoginResponse конвертирует доменные ошибки в OpenAPI LoginResponseObject
@@ -48,14 +49,6 @@ func ConvertToLoginResponse(err error) servers.LoginResponseObject {
 // ConvertToRegisterResponse конвертирует доменные ошибки в OpenAPI RegisterResponseObject
 func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 	switch {
-	case isValidationError(err):
-		return servers.Register400JSONResponse(servers.BadRequest{
-			Type:   "bad-request",
-			Title:  "Bad Request",
-			Status: 400,
-			Detail: err.Error(),
-		})
-
 	case isEmailAlreadyExistsError(err):
 		return servers.Register400JSONResponse(servers.BadRequest{
 			Type:   "conflict",
@@ -72,6 +65,14 @@ func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 			Detail: "Phone number already exists",
 		})
 
+	case isValidationError(err):
+		return servers.Register400JSONResponse(servers.BadRequest{
+			Type:   "bad-request",
+			Title:  "Bad Request",
+			Status: 400,
+			Detail: err.Error(),
+		})
+
 	default:
 		// Общая ошибка сервера
 		return servers.Register400JSONResponse(servers.BadRequest{
@@ -86,38 +87,47 @@ func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 // Helper functions для определения типов ошибок
 
 func isInvalidCredentialsError(err error) bool {
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "invalid email or password") ||
-		strings.Contains(msg, "invalid credentials") ||
-		strings.Contains(msg, "wrong password")
+	var dvErr *errs.DomainValidationError
+	if errors.As(err, &dvErr) {
+		return dvErr.Field == "credentials"
+	}
+	return false
 }
 
 func isValidationError(err error) bool {
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "email") && strings.Contains(msg, "invalid") ||
-		strings.Contains(msg, "phone") && strings.Contains(msg, "invalid") ||
-		strings.Contains(msg, "password") && strings.Contains(msg, "too short") ||
-		strings.Contains(msg, "name") && strings.Contains(msg, "empty")
+	var dvErr *errs.DomainValidationError
+	if errors.As(err, &dvErr) {
+		if dvErr.Field == "credentials" {
+			return false
+		}
+		if dvErr.Field == "email" && dvErr.Message == "email already exists" {
+			return false
+		}
+		if dvErr.Field == "phone" && dvErr.Message == "phone already exists" {
+			return false
+		}
+		return true
+	}
+	return false
 }
 
 func isUserNotFoundError(err error) bool {
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "user not found") ||
-		strings.Contains(msg, "user does not exist")
+	var notFoundErr *errs.NotFoundError
+	return errors.As(err, &notFoundErr)
 }
 
 func isEmailAlreadyExistsError(err error) bool {
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "email") &&
-		(strings.Contains(msg, "already exists") ||
-			strings.Contains(msg, "duplicate") ||
-			strings.Contains(msg, "taken"))
+	var dvErr *errs.DomainValidationError
+	if errors.As(err, &dvErr) {
+		return dvErr.Field == "email" && dvErr.Message == "email already exists"
+	}
+	return false
 }
 
 func isPhoneAlreadyExistsError(err error) bool {
-	msg := strings.ToLower(err.Error())
-	return strings.Contains(msg, "phone") &&
-		(strings.Contains(msg, "already exists") ||
-			strings.Contains(msg, "duplicate") ||
-			strings.Contains(msg, "taken"))
+	var dvErr *errs.DomainValidationError
+	if errors.As(err, &dvErr) {
+		return dvErr.Field == "phone" && dvErr.Message == "phone already exists"
+	}
+	return false
 }
