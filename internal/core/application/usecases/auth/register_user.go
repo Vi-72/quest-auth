@@ -86,13 +86,13 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 	}
 
 	// Сохранение в транзакции
-	err = h.unitOfWork.Execute(func() error {
+	err = h.unitOfWork.Execute(ctx, func() error {
 		if err := userRepo.Create(&user); err != nil {
 			return err
 		}
 
 		// Публикация доменных событий
-		return h.eventPublisher.PublishDomainEvents(user.GetDomainEvents())
+		return h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())
 	})
 
 	if err != nil {

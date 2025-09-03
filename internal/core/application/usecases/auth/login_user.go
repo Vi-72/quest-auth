@@ -66,7 +66,7 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 	user.MarkLoggedIn()
 
 	// Публикация доменных событий
-	err = h.eventPublisher.PublishDomainEvents(user.GetDomainEvents())
+	err = h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())
 	if err != nil {
 		return LoginUserResult{}, err
 	}
