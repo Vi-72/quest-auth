@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	ErrNameEmpty         = errors.New("name must not be empty")
-	ErrPasswordTooShort  = errors.New("password must be at least 8 characters")
-	ErrPasswordHashEmpty = errors.New("password hash is empty")
+	ErrNameEmpty        = errors.New("name must not be empty")
+	ErrPasswordTooShort = errors.New("password must be at least 8 characters")
 )
 
 // User — агрегат домена аутентификации.

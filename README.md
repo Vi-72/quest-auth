@@ -20,18 +20,44 @@ HTTP-сервис аутентификации с поддержкой реги�
 
 ### 🚀 Быстрый старт
 
-1. **Настройка переменных окружения:**
+1. **Установите зависимости:**
 ```bash
-cp config.example .env
-# Отредактируйте .env файл под вашу конфигурацию
+go mod download
 ```
 
-2. **Запуск:**
+2. **Настройка переменных окружения:**
+Файл `.env` уже создан с базовой конфигурацией.
+
+3. **Запустите PostgreSQL:**
+
+**Вариант A: Через Docker**
+```bash
+docker run --name quest-auth-postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=quest_auth \
+  -p 5432:5432 -d postgres:15
+```
+
+**Вариант B: Через Homebrew (macOS)**
+```bash
+brew install postgresql
+brew services start postgresql
+createdb quest_auth
+```
+
+4. **Запуск приложения:**
 ```bash
 go run ./cmd/app
 ```
 
-Сервер запускается на порту, указанном в переменной `HTTP_PORT` (по умолчанию 8080).
+5. **Проверьте работу:**
+```bash
+curl http://localhost:8080/health      # Health check
+curl http://localhost:8080/docs        # Swagger UI  
+curl http://localhost:8080/openapi.json # OpenAPI spec
+```
+
+Сервер запускается на порту 8080.
 
 ### 🌐 API Endpoints
 
@@ -247,14 +273,24 @@ docker compose up
 ### ⚙️ Переменные окружения
 
 ```bash
+# HTTP Server
 HTTP_PORT=8080
+
+# Database
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=username
 DB_PASSWORD=secret
 DB_NAME=quest_auth
 DB_SSLMODE=disable
+
+# Events
 EVENT_GOROUTINE_LIMIT=10
+
+# JWT Configuration
+JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
+JWT_ACCESS_TOKEN_DURATION=15    # в минутах
+JWT_REFRESH_TOKEN_DURATION=168  # в часах (7 дней)
 ```
 
 ## 🔧 Разработка

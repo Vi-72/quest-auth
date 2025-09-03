@@ -83,9 +83,9 @@ func (cr *CompositionRoot) NewLoginUserHandler() *auth.LoginUserHandler {
 
 // HTTP Handlers
 
-// NewApiHandler creates OpenAPI handler
-func (cr *CompositionRoot) NewApiHandler() servers.StrictServerInterface {
-	handlers, err := http.NewApiHandler(
+// NewAPIHandler creates OpenAPI handler
+func (cr *CompositionRoot) NewAPIHandler() servers.StrictServerInterface {
+	handlers, err := http.NewAPIHandler(
 		cr.NewRegisterUserHandler(),
 		cr.NewLoginUserHandler(),
 	)

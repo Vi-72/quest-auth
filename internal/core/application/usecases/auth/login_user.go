@@ -79,7 +79,7 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 
 	return LoginUserResult{
 		User: UserInfo{
-			ID:    user.ID().String(),
+			ID:    user.ID(),
 			Email: user.Email.String(),
 			Name:  user.Name,
 		},

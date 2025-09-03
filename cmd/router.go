@@ -76,7 +76,7 @@ func NewRouter(root *CompositionRoot) http.Handler {
 		`))
 	})
 
-	strictHandler := root.NewApiHandler()
+	strictHandler := root.NewAPIHandler()
 
 	// Create StrictHandler with custom error handling for parameter parsing and validation
 	apiHandler := servers.NewStrictHandlerWithOptions(strictHandler, nil, servers.StrictHTTPServerOptions{

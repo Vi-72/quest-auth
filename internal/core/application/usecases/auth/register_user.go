@@ -107,7 +107,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 
 	return RegisterUserResult{
 		User: UserInfo{
-			ID:    user.ID().String(),
+			ID:    user.ID(),
 			Email: user.Email.String(),
 			Name:  user.Name,
 		},

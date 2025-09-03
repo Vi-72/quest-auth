@@ -4,17 +4,17 @@ import (
 	"quest-auth/internal/core/application/usecases/auth"
 )
 
-// ApiHandler реализует StrictServerInterface для OpenAPI
-type ApiHandler struct {
+// APIHandler реализует StrictServerInterface для OpenAPI
+type APIHandler struct {
 	registerHandler *auth.RegisterUserHandler
 	loginHandler    *auth.LoginUserHandler
 }
 
-func NewApiHandler(
+func NewAPIHandler(
 	registerHandler *auth.RegisterUserHandler,
 	loginHandler *auth.LoginUserHandler,
-) (*ApiHandler, error) {
-	return &ApiHandler{
+) (*APIHandler, error) {
+	return &APIHandler{
 		registerHandler: registerHandler,
 		loginHandler:    loginHandler,
 	}, nil

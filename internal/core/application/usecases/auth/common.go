@@ -1,8 +1,10 @@
 package auth
 
+import "github.com/google/uuid"
+
 // UserInfo — информация о пользователе
 type UserInfo struct {
-	ID    string
+	ID    uuid.UUID
 	Email string
 	Name  string
 }
