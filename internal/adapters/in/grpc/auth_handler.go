@@ -12,6 +12,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // AuthHandler реализует gRPC сервис аутентификации
@@ -47,10 +48,11 @@ func (h *AuthHandler) Authenticate(ctx context.Context, req *authpb.Authenticate
 	// Формируем ответ из данных клеймов
 	response := &authpb.AuthenticateResponse{
 		User: &authpb.User{
-			Id:    info.ID.String(),
-			Name:  info.Name,
-			Email: info.Email,
-			Phone: info.Phone,
+			Id:        info.ID.String(),
+			Name:      info.Name,
+			Email:     info.Email,
+			Phone:     info.Phone,
+			CreatedAt: timestamppb.New(info.CreatedAt),
 		},
 	}
 
