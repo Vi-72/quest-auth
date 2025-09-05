@@ -99,16 +99,16 @@ func (s *Service) parseToken(tokenString string) (*Claims, error) {
 	})
 
 	if err != nil {
-		return nil, errs.WrapInfrastructureError("parsing token", err)
+		return nil, errs.NewJWTValidationErrorWithCause("parsing token", err)
 	}
 
 	if !token.Valid {
-		return nil, errs.WrapInfrastructureError("token validation", fmt.Errorf("token is invalid"))
+		return nil, errs.NewJWTValidationError("token is invalid")
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
-		return nil, errs.WrapInfrastructureError("token claims", fmt.Errorf("invalid token claims"))
+		return nil, errs.NewJWTValidationError("invalid token claims")
 	}
 
 	return claims, nil
@@ -122,7 +122,7 @@ func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, e
 	}
 
 	if claims.Type != "access" {
-		return nil, errs.WrapInfrastructureError("token type", fmt.Errorf("token is not an access token"))
+		return nil, errs.NewJWTValidationError("token is not an access token")
 	}
 
 	return &ports.TokenClaims{
@@ -143,7 +143,7 @@ func (s *Service) RefreshTokens(refreshTokenString string) (*ports.TokenPair, er
 	}
 
 	if claims.Type != "refresh" {
-		return nil, errs.WrapInfrastructureError("refresh token type", fmt.Errorf("token is not a refresh token"))
+		return nil, errs.NewJWTValidationError("token is not a refresh token")
 	}
 
 	// Генерируем новую пару токенов
