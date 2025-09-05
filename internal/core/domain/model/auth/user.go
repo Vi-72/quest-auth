@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"quest-auth/internal/core/domain/model/kernel"
+	clockpkg "quest-auth/internal/pkg/clock"
 	"quest-auth/internal/pkg/ddd"
 
 	"github.com/google/uuid"
@@ -31,7 +32,7 @@ type User struct {
 
 // NewUser — регистрация пользователя (создание аккаунта).
 // Сразу валидирует email/phone/name и хеширует пароль.
-func NewUser(email kernel.Email, phone kernel.Phone, name string, rawPassword string) (User, error) {
+func NewUser(clock clockpkg.Clock, email kernel.Email, phone kernel.Phone, name string, rawPassword string) (User, error) {
 	if name = normalizeName(name); name == "" {
 		return User{}, ErrNameEmpty
 	}
@@ -45,7 +46,7 @@ func NewUser(email kernel.Email, phone kernel.Phone, name string, rawPassword st
 	}
 
 	id := uuid.New()
-	now := time.Now()
+	now := clock.Now()
 
 	u := User{
 		BaseAggregate: ddd.NewBaseAggregate(id),
@@ -57,20 +58,21 @@ func NewUser(email kernel.Email, phone kernel.Phone, name string, rawPassword st
 		UpdatedAt:     now,
 	}
 
-	u.RaiseDomainEvent(NewUserRegistered(id, email.String(), phone.String()))
+	u.RaiseDomainEvent(NewUserRegistered(id, email.String(), phone.String(), now))
 	return u, nil
 }
 
 // ChangePhone — смена телефона (например, после подтверждения OTP).
-func (u *User) ChangePhone(newPhone kernel.Phone) {
+func (u *User) ChangePhone(clock clockpkg.Clock, newPhone kernel.Phone) {
 	old := u.Phone
 	u.Phone = newPhone
-	u.UpdatedAt = time.Now()
-	u.RaiseDomainEvent(NewUserPhoneChanged(u.ID(), old.String(), newPhone.String()))
+	now := clock.Now()
+	u.UpdatedAt = now
+	u.RaiseDomainEvent(NewUserPhoneChanged(u.ID(), old.String(), newPhone.String(), now))
 }
 
 // ChangeName — обновление отображаемого имени.
-func (u *User) ChangeName(newName string) error {
+func (u *User) ChangeName(clock clockpkg.Clock, newName string) error {
 	newName = normalizeName(newName)
 	if newName == "" {
 		return ErrNameEmpty
@@ -80,13 +82,14 @@ func (u *User) ChangeName(newName string) error {
 	}
 	old := u.Name
 	u.Name = newName
-	u.UpdatedAt = time.Now()
-	u.RaiseDomainEvent(NewUserNameChanged(u.ID(), old, newName))
+	now := clock.Now()
+	u.UpdatedAt = now
+	u.RaiseDomainEvent(NewUserNameChanged(u.ID(), old, newName, now))
 	return nil
 }
 
 // SetPassword — смена пароля (с валидацией и перезаписью хеша).
-func (u *User) SetPassword(rawPassword string) error {
+func (u *User) SetPassword(clock clockpkg.Clock, rawPassword string) error {
 	if len(rawPassword) < 8 {
 		return ErrPasswordTooShort
 	}
@@ -95,8 +98,9 @@ func (u *User) SetPassword(rawPassword string) error {
 		return err
 	}
 	u.PasswordHash = hash
-	u.UpdatedAt = time.Now()
-	u.RaiseDomainEvent(NewUserPasswordChanged(u.ID()))
+	now := clock.Now()
+	u.UpdatedAt = now
+	u.RaiseDomainEvent(NewUserPasswordChanged(u.ID(), now))
 	return nil
 }
 
@@ -109,8 +113,8 @@ func (u *User) VerifyPassword(raw string) bool {
 }
 
 // MarkLoggedIn — доменное событие логина (можно вызывать после VerifyPassword).
-func (u *User) MarkLoggedIn() {
-	u.RaiseDomainEvent(NewUserLoggedIn(u.ID(), time.Now()))
+func (u *User) MarkLoggedIn(clock clockpkg.Clock) {
+	u.RaiseDomainEvent(NewUserLoggedIn(u.ID(), clock.Now()))
 }
 
 // Вспомогательные функции

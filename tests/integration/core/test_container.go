@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"quest-auth/cmd"
+	clockadapter "quest-auth/internal/adapters/out/clock"
 	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
 	"quest-auth/internal/core/application/usecases/commands"
@@ -108,8 +109,9 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 	)
 
 	// Создание обработчиков use cases
-	loginUserHandler := commands.NewLoginUserHandler(unitOfWork, eventPublisher, jwtService)
-	registerUserHandler := commands.NewRegisterUserHandler(unitOfWork, eventPublisher, jwtService)
+	clock := clockadapter.NewSystemClock()
+	loginUserHandler := commands.NewLoginUserHandler(unitOfWork, eventPublisher, jwtService, clock)
+	registerUserHandler := commands.NewRegisterUserHandler(unitOfWork, eventPublisher, jwtService, clock)
 
 	// Create HTTP Router for API testing
 	compositionRoot := cmd.NewCompositionRoot(testConfig, db)

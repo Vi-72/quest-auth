@@ -6,6 +6,7 @@ import (
 	"quest-auth/internal/core/domain/model/auth"
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
+	clockpkg "quest-auth/internal/pkg/clock"
 	"quest-auth/internal/pkg/errs"
 )
 
@@ -14,17 +15,20 @@ type RegisterUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
 	jwtService     ports.JWTService
+	clock          clockpkg.Clock
 }
 
 func NewRegisterUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
 	jwtService ports.JWTService,
+	clock clockpkg.Clock,
 ) *RegisterUserHandler {
 	return &RegisterUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
 		jwtService:     jwtService,
+		clock:          clock,
 	}
 }
 
@@ -63,7 +67,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 	}
 
 	// Создание доменного объекта User
-	user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password)
+	user, err := auth.NewUser(h.clock, email, phone, cmd.Name, cmd.Password)
 	if err != nil {
 		return RegisterUserResult{}, errs.NewDomainValidationError("user", err.Error())
 	}

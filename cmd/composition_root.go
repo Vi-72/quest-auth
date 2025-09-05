@@ -6,6 +6,7 @@ import (
 
 	"quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/adapters/in/http"
+	clockadapter "quest-auth/internal/adapters/out/clock"
 	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
 	"quest-auth/internal/adapters/out/postgres/eventrepo"
@@ -13,6 +14,7 @@ import (
 	"quest-auth/internal/core/application/usecases/queries"
 	"quest-auth/internal/core/ports"
 	"quest-auth/internal/generated/servers"
+	clockpkg "quest-auth/internal/pkg/clock"
 
 	"gorm.io/gorm"
 )
@@ -23,6 +25,7 @@ type CompositionRoot struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
 	jwtService     ports.JWTService
+	clock          clockpkg.Clock
 	closers        []Closer
 }
 
@@ -39,6 +42,9 @@ func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
 		log.Fatalf("cannot create EventPublisher: %v", err)
 	}
 
+	// Create Clock
+	clock := clockadapter.NewSystemClock()
+
 	// Create JWT Service
 	jwtService := jwt.NewService(
 		configs.JWTSecretKey,
@@ -52,6 +58,7 @@ func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
 		jwtService:     jwtService,
+		clock:          clock,
 		closers:        []Closer{},
 	}
 }
@@ -71,16 +78,21 @@ func (cr *CompositionRoot) JWTService() ports.JWTService {
 	return cr.jwtService
 }
 
+// Clock returns Clock implementation
+func (cr *CompositionRoot) Clock() clockpkg.Clock {
+	return cr.clock
+}
+
 // Auth Use Case Handlers
 
 // NewRegisterUserHandler creates a handler for user registration
 func (cr *CompositionRoot) NewRegisterUserHandler() *commands.RegisterUserHandler {
-	return commands.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
+	return commands.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService(), cr.Clock())
 }
 
 // NewLoginUserHandler creates a handler for user login
 func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
-	return commands.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
+	return commands.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService(), cr.Clock())
 }
 
 // HTTP Handlers

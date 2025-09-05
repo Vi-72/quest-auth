@@ -5,6 +5,7 @@ import (
 
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
+	clockpkg "quest-auth/internal/pkg/clock"
 	"quest-auth/internal/pkg/errs"
 )
 
@@ -13,17 +14,20 @@ type LoginUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
 	jwtService     ports.JWTService
+	clock          clockpkg.Clock
 }
 
 func NewLoginUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
 	jwtService ports.JWTService,
+	clock clockpkg.Clock,
 ) *LoginUserHandler {
 	return &LoginUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
 		jwtService:     jwtService,
+		clock:          clock,
 	}
 }
 
@@ -48,7 +52,7 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 	}
 
 	// Отметка о входе (создание доменного события)
-	user.MarkLoggedIn()
+	user.MarkLoggedIn(h.clock)
 
 	// Публикация доменных событий
 	err = h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())
