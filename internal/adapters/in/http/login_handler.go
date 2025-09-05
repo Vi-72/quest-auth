@@ -4,9 +4,9 @@ import (
 	"context"
 	"quest-auth/internal/core/application/usecases/commands"
 
+	"quest-auth/internal/adapters/in/http/httperrs"
 	"quest-auth/internal/adapters/in/http/validations"
 	"quest-auth/internal/generated/servers"
-	"quest-auth/internal/pkg/errs"
 )
 
 // Login implements POST /auth/login from OpenAPI.
@@ -15,7 +15,7 @@ func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObje
 	validatedData, validationErr := validations.ValidateLoginUserRequestBody(request.Body)
 	if validationErr != nil {
 		// Use unified error converter
-		return errs.ToLoginResponse(validationErr), nil
+		return httperrs.ToLoginResponse(validationErr), nil
 	}
 
 	// Execute login command
@@ -27,7 +27,7 @@ func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObje
 	result, err := a.loginHandler.Handle(ctx, cmd)
 	if err != nil {
 		// Use unified error converter
-		return errs.ToLoginResponse(err), nil
+		return httperrs.ToLoginResponse(err), nil
 	}
 
 	// Map result to response directly
