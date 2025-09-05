@@ -2,8 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"strings"
 
 	authpb "quest-auth/api/proto"
@@ -65,38 +63,16 @@ func (h *AuthHandler) convertErrorToGRPCStatus(err error) error {
 		return nil
 	}
 
-	// Проверяем тип ошибки и конвертируем в соответствующий gRPC код
-	switch {
-	case isJWTValidationError(err):
-		return status.Error(codes.Unauthenticated, "invalid or expired JWT token")
-	case isUserNotFoundError(err):
-		return status.Error(codes.NotFound, "user not found")
-	case isInfrastructureError(err):
-		return status.Error(codes.Internal, "internal server error")
+	code := errs.ToGRPC(err)
+
+	switch code {
+	case codes.Unauthenticated:
+		return status.Error(code, "invalid or expired JWT token")
+	case codes.NotFound:
+		return status.Error(code, "user not found")
+	case codes.InvalidArgument:
+		return status.Error(code, err.Error())
 	default:
-		return status.Error(codes.Internal, fmt.Sprintf("unexpected error: %v", err))
+		return status.Error(codes.Internal, "internal server error")
 	}
-}
-
-// Helper functions для определения типов ошибок
-
-func isJWTValidationError(err error) bool {
-	// Проверяем, является ли ошибка связанной с JWT валидацией
-	errMsg := strings.ToLower(err.Error())
-	return strings.Contains(errMsg, "token") &&
-		(strings.Contains(errMsg, "invalid") ||
-			strings.Contains(errMsg, "expired") ||
-			strings.Contains(errMsg, "parsing"))
-}
-
-func isUserNotFoundError(err error) bool {
-	var notFoundErr *errs.NotFoundError
-	return errors.As(err, &notFoundErr)
-}
-
-func isInfrastructureError(err error) bool {
-	errMsg := strings.ToLower(err.Error())
-	return strings.Contains(errMsg, "infrastructure") ||
-		strings.Contains(errMsg, "database") ||
-		strings.Contains(errMsg, "connection")
 }
