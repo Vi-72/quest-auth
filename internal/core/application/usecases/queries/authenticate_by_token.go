@@ -6,6 +6,7 @@ import (
 
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
+	"quest-auth/internal/pkg/errs"
 
 	"github.com/google/uuid"
 )
@@ -34,7 +35,7 @@ func (h *AuthenticateByTokenHandler) Handle(ctx context.Context, q AuthenticateB
 	// Создаём доменную модель токена (валидирует пустые значения и пробелы)
 	token, err := kernel.NewJwtToken(q.RawToken)
 	if err != nil {
-		return AuthenticatedInfo{}, err
+		return AuthenticatedInfo{}, errs.NewDomainValidationError("jwt_token", "value is required")
 	}
 
 	claims, err := h.jwt.ValidateAccessToken(token.String())
