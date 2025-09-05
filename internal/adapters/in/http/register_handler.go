@@ -4,9 +4,9 @@ import (
 	"context"
 	"quest-auth/internal/core/application/usecases/commands"
 
+	"quest-auth/internal/adapters/in/http/httperrs"
 	"quest-auth/internal/adapters/in/http/validations"
 	"quest-auth/internal/generated/servers"
-	"quest-auth/internal/pkg/errs"
 )
 
 // Register implements POST /auth/register from OpenAPI.
@@ -15,7 +15,7 @@ func (a *APIHandler) Register(ctx context.Context, request servers.RegisterReque
 	validatedData, validationErr := validations.ValidateRegisterUserRequestBody(request.Body)
 	if validationErr != nil {
 		// Use unified error converter
-		return errs.ToRegisterResponse(validationErr), nil
+		return httperrs.ToRegisterResponse(validationErr), nil
 	}
 
 	// Execute register command
@@ -29,7 +29,7 @@ func (a *APIHandler) Register(ctx context.Context, request servers.RegisterReque
 	result, err := a.registerHandler.Handle(ctx, cmd)
 	if err != nil {
 		// Use unified error converter
-		return errs.ToRegisterResponse(err), nil
+		return httperrs.ToRegisterResponse(err), nil
 	}
 
 	// Map result to response directly

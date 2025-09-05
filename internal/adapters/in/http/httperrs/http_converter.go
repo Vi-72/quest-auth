@@ -1,10 +1,11 @@
-package errs
+package httperrs
 
 import (
 	"errors"
 	"net/http"
 
 	"quest-auth/internal/generated/servers"
+	errs "quest-auth/internal/pkg/errs"
 )
 
 // HTTPError represents a structured HTTP error response
@@ -33,7 +34,7 @@ func ToHTTP(err error) HTTPError {
 	}
 
 	// Check for domain validation errors
-	var domainValidationErr *DomainValidationError
+	var domainValidationErr *errs.DomainValidationError
 	if errors.As(err, &domainValidationErr) {
 		switch domainValidationErr.Field {
 		case "email":
@@ -90,7 +91,7 @@ func ToHTTP(err error) HTTPError {
 	}
 
 	// Check for not found errors
-	var notFoundErr *NotFoundError
+	var notFoundErr *errs.NotFoundError
 	if errors.As(err, &notFoundErr) {
 		return HTTPError{
 			Type:       "not-found",
