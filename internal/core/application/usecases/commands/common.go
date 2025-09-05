@@ -7,4 +7,5 @@ type UserInfo struct {
 	ID    uuid.UUID
 	Email string
 	Name  string
+	Phone string
 }

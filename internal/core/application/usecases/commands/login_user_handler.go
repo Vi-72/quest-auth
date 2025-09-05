@@ -57,7 +57,7 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 	}
 
 	// Генерация токенов
-	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID(), user.Email.String())
+	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID(), user.Email.String(), user.Name, user.Phone.String(), user.CreatedAt)
 	if err != nil {
 		return LoginUserResult{}, err
 	}
@@ -67,6 +67,7 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 			ID:    user.ID(),
 			Email: user.Email.String(),
 			Name:  user.Name,
+			Phone: user.Phone.String(),
 		},
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,

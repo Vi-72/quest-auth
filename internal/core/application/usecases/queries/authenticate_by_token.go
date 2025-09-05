@@ -2,6 +2,7 @@ package queries
 
 import (
 	"context"
+	"time"
 
 	"quest-auth/internal/core/domain/model/kernel"
 	"quest-auth/internal/core/ports"
@@ -10,10 +11,11 @@ import (
 )
 
 type AuthenticatedInfo struct {
-	ID       uuid.UUID
-	FullName string
-	Email    string
-	Phone    string
+	ID        uuid.UUID
+	Name      string
+	Email     string
+	Phone     string
+	CreatedAt time.Time
 }
 
 type AuthenticateByTokenQuery struct {
@@ -42,8 +44,10 @@ func (h *AuthenticateByTokenHandler) Handle(ctx context.Context, q AuthenticateB
 
 	// Собираем ответ из доступных клеймов (без похода в БД)
 	return AuthenticatedInfo{
-		ID:    claims.UserID,
-		Email: claims.Email,
-		// FullName и Phone останутся пустыми, если не добавим их в клеймы позже
+		ID:        claims.UserID,
+		Name:      claims.Name,
+		Email:     claims.Email,
+		Phone:     claims.Phone,
+		CreatedAt: claims.CreatedAt,
 	}, nil
 }

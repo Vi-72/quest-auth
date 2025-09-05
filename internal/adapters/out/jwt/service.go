@@ -27,21 +27,27 @@ func NewService(secretKey string, accessTokenDuration, refreshTokenDuration time
 
 // Claims структура для JWT токена
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
-	Email  string    `json:"email"`
-	Type   string    `json:"type"` // "access" или "refresh"
+	UserID    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name,omitempty"`
+	Phone     string    `json:"phone,omitempty"`
+	CreatedAt int64     `json:"created_at,omitempty"`
+	Type      string    `json:"type"` // "access" или "refresh"
 	jwt.RegisteredClaims
 }
 
 // GenerateTokenPair создает пару access и refresh токенов
-func (s *Service) GenerateTokenPair(userID uuid.UUID, email string) (*ports.TokenPair, error) {
+func (s *Service) GenerateTokenPair(userID uuid.UUID, email, name, phone string, createdAt time.Time) (*ports.TokenPair, error) {
 	now := time.Now()
 
 	// Access token
 	accessClaims := &Claims{
-		UserID: userID,
-		Email:  email,
-		Type:   "access",
+		UserID:    userID,
+		Email:     email,
+		Name:      name,
+		Phone:     phone,
+		CreatedAt: createdAt.Unix(),
+		Type:      "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -56,7 +62,7 @@ func (s *Service) GenerateTokenPair(userID uuid.UUID, email string) (*ports.Toke
 		return nil, errs.WrapInfrastructureError("generating access token", err)
 	}
 
-	// Refresh token
+	// Refresh token (PII не обязательно)
 	refreshClaims := &Claims{
 		UserID: userID,
 		Email:  email,
@@ -120,9 +126,12 @@ func (s *Service) ValidateAccessToken(tokenString string) (*ports.TokenClaims, e
 	}
 
 	return &ports.TokenClaims{
-		UserID: claims.UserID,
-		Email:  claims.Email,
-		Exp:    claims.ExpiresAt.Time,
+		UserID:    claims.UserID,
+		Email:     claims.Email,
+		Name:      claims.Name,
+		Phone:     claims.Phone,
+		CreatedAt: time.Unix(claims.CreatedAt, 0),
+		Exp:       claims.ExpiresAt.Time,
 	}, nil
 }
 
@@ -138,7 +147,7 @@ func (s *Service) RefreshTokens(refreshTokenString string) (*ports.TokenPair, er
 	}
 
 	// Генерируем новую пару токенов
-	return s.GenerateTokenPair(claims.UserID, claims.Email)
+	return s.GenerateTokenPair(claims.UserID, claims.Email, claims.Name, claims.Phone, time.Unix(claims.CreatedAt, 0))
 }
 
 // Compile-time check that Service implements JWTService

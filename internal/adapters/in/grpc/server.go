@@ -3,7 +3,6 @@ package grpc
 import (
 	"log"
 	"net"
-
 	authpb "quest-auth/api/proto"
 
 	"google.golang.org/grpc"

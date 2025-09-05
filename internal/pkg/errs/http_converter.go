@@ -123,7 +123,7 @@ func ToHTTP(err error) HTTPError {
 	}
 }
 
-// ToRegisterResponse converts error to OpenAPI RegisterResponseObject
+// ToRegisterResponse converts error to Register strict response wrapper
 func ToRegisterResponse(err error) servers.RegisterResponseObject {
 	httpErr := ToHTTP(err)
 
@@ -141,7 +141,7 @@ func ToRegisterResponse(err error) servers.RegisterResponseObject {
 	})
 }
 
-// ToLoginResponse converts error to OpenAPI LoginResponseObject
+// ToLoginResponse converts error to Login strict response wrapper
 func ToLoginResponse(err error) servers.LoginResponseObject {
 	httpErr := ToHTTP(err)
 

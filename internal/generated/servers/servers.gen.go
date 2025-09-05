@@ -4,18 +4,11 @@
 package servers
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
-	"strings"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -78,6 +71,7 @@ type User struct {
 	Email string             `json:"email"`
 	Id    openapi_types.UUID `json:"id"`
 	Name  string             `json:"name"`
+	Phone *string            `json:"phone,omitempty"`
 }
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
@@ -448,97 +442,4 @@ func (sh *strictHandler) Register(w http.ResponseWriter, r *http.Request) {
 	} else if response != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-}
-
-// Base64 encoded, gzipped, json marshaled Swagger object
-var swaggerSpec = []string{
-
-	"H4sIAAAAAAAC/+xW32/bNhD+VwiuQB/qH1Qsu46e1nTAoKDYjwwZBiRZwIhni61EqkcqrRv4fx9ISo7l",
-	"KInXJtjD+maLvPu+u/vujjc002WlFShraHJDTZZDyf3PIy5O4GMNxrp/FeoK0ErwZwIsl4X7BZ95WRVA",
-	"E3rNCym4lVqRBZcFiIQsJBSCvISSy+IlkYYgfKwlgqADaleVszIWpVrS9YAay21tOj5jxjYXpbKwBHQ3",
-	"rbTudBv8iAvSsu3xHT5sG1xxMcT7DNYDumGanIXTFnZDdNBm4WJjr6/eQ2Yd4Du9lOre9PmEdPnUBvDH",
-	"5u8o0yUd0IXGkluaNNd7wqq4MZ80iq4rA1mN0J5FB5NHA2wBNv4eCMlUWhm4GxPPMjDm0uoPoLp8YHWc",
-	"X/2cyV/lcXr6JY1+kalJ1ck0e5vO0g/VX3++PT4cjUZ9AcLnSiKYS6mC6kyGsnISowl94wGJByT+YhCf",
-	"lSUQqYiBTCvh6rShMpn1CwphgWDyJybvvV3eld4RcATss3AicHdfICxoQn8Y3zbnuOnM8am7s1tAbzjo",
-	"1mA3rA6hTmr7qn0CS2ks4LNrWPFyJz/HOlfkJ+1IllK9A7W0OU2ib9L/lqN5n6Ncqx0Wr6KDSTydvZ4f",
-	"Mt8Z1gI62f19fv7qLBoeXpyfi5vZIIrXL/bvLw/TxPxIu90W4HvH/S867lTx2uYa5RcQ+21cqfzOJRmC",
-	"AGUlL8zeizXac7F2WO21WesHLb59tZ42JfuacXSHvtyZHdMpg3nM2BAODq+GcSTiIX8dzYZxPJtNp3HM",
-	"GGPbY62upfjXU+3hlHiH7cTwfu5mwdlItdA9PfpbShYaiQueuEI4YWShT7kSBP1YCY072mQ+ob+7KU/e",
-	"1DYnfwBey8wRvQY0wW00YiPmAtMVKF5JmtDJiI0mYTTmvgRjBzcu3DPB10eHteGq5OFSQZPwiqAhYjD2",
-	"SIuVu5RpZUH5+7yqiobx+L3R6vZZ+lijdh5d625eLdbgP4Rp6gkfMPbU2M2s9uDdwvgLxNR+YCzqwiUz",
-	"fkICW8/1HvS0GRVSVbUlglse8KMnw+8Mih4G3fMBnYbYd2m6LcsLYgCvAQkg6jB7TV2WHFfOkVN2UJk7",
-	"CKrDZlveL7x2nz6T9nbfS3vJL3oG+PsV6BN3K8BiRdqshYr812r8akW0wRNOFHzyoy+gBhtDk7MbWmNB",
-	"E5pbWyXjcaEzXuTa2GTO5oyuL9b/BAAA///xY758CQ8AAA==",
-}
-
-// GetSwagger returns the content of the embedded swagger specification file
-// or error if failed to decode
-func decodeSpec() ([]byte, error) {
-	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
-	if err != nil {
-		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
-	}
-	zr, err := gzip.NewReader(bytes.NewReader(zipped))
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(zr)
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
-
-var rawSpec = decodeSpecCached()
-
-// a naive cached of a decoded swagger spec
-func decodeSpecCached() func() ([]byte, error) {
-	data, err := decodeSpec()
-	return func() ([]byte, error) {
-		return data, err
-	}
-}
-
-// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
-func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
-	res := make(map[string]func() ([]byte, error))
-	if len(pathToFile) > 0 {
-		res[pathToFile] = rawSpec
-	}
-
-	return res
-}
-
-// GetSwagger returns the Swagger specification corresponding to the generated code
-// in this file. The external references of Swagger specification are resolved.
-// The logic of resolving external references is tightly connected to "import-mapping" feature.
-// Externally referenced files must be embedded in the corresponding golang packages.
-// Urls can be supported but this task was out of the scope.
-func GetSwagger() (swagger *openapi3.T, err error) {
-	resolvePath := PathToRawSpec("")
-
-	loader := openapi3.NewLoader()
-	loader.IsExternalRefsAllowed = true
-	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
-		pathToFile := url.String()
-		pathToFile = path.Clean(pathToFile)
-		getSpec, ok := resolvePath[pathToFile]
-		if !ok {
-			err1 := fmt.Errorf("path not found: %s", pathToFile)
-			return nil, err1
-		}
-		return getSpec()
-	}
-	var specData []byte
-	specData, err = rawSpec()
-	if err != nil {
-		return
-	}
-	swagger, err = loader.LoadFromData(specData)
-	if err != nil {
-		return
-	}
-	return
 }

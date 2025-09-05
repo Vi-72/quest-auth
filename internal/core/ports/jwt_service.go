@@ -17,7 +17,7 @@ type TokenPair struct {
 // JWTService интерфейс для работы с JWT токенами
 type JWTService interface {
 	// GenerateTokenPair создает пару access и refresh токенов
-	GenerateTokenPair(userID uuid.UUID, email string) (*TokenPair, error)
+	GenerateTokenPair(userID uuid.UUID, email, name, phone string, createdAt time.Time) (*TokenPair, error)
 
 	// ValidateAccessToken проверяет валидность access токена
 	ValidateAccessToken(token string) (*TokenClaims, error)
@@ -28,7 +28,10 @@ type JWTService interface {
 
 // TokenClaims содержит данные из токена
 type TokenClaims struct {
-	UserID uuid.UUID
-	Email  string
-	Exp    time.Time
+	UserID    uuid.UUID
+	Email     string
+	Name      string
+	Phone     string
+	Exp       time.Time
+	CreatedAt time.Time
 }
