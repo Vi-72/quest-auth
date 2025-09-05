@@ -17,7 +17,6 @@ type UserRegistered struct {
 	At     time.Time
 }
 
-// NewUserRegistered creates UserRegistered domain event at the specified time.
 func NewUserRegistered(userID uuid.UUID, email, phone string, at time.Time) UserRegistered {
 	return UserRegistered{
 		ID:     uuid.New(),
@@ -40,7 +39,6 @@ type UserPhoneChanged struct {
 	At     time.Time
 }
 
-// NewUserPhoneChanged creates UserPhoneChanged event at the given time.
 func NewUserPhoneChanged(userID uuid.UUID, old, new string, at time.Time) UserPhoneChanged {
 	return UserPhoneChanged{
 		ID:     uuid.New(),
@@ -63,7 +61,6 @@ type UserNameChanged struct {
 	At     time.Time
 }
 
-// NewUserNameChanged creates UserNameChanged event at the specified time.
 func NewUserNameChanged(userID uuid.UUID, old, new string, at time.Time) UserNameChanged {
 	return UserNameChanged{
 		ID:     uuid.New(),
@@ -84,7 +81,6 @@ type UserPasswordChanged struct {
 	At     time.Time
 }
 
-// NewUserPasswordChanged creates UserPasswordChanged event at the given time.
 func NewUserPasswordChanged(userID uuid.UUID, at time.Time) UserPasswordChanged {
 	return UserPasswordChanged{
 		ID:     uuid.New(),

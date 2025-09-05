@@ -9,13 +9,23 @@ import (
 	"quest-auth/internal/pkg/ddd"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	ErrNameEmpty        = errors.New("name must not be empty")
 	ErrPasswordTooShort = errors.New("password must be at least 8 characters")
 )
+
+// PasswordHasher provides methods to hash and compare passwords.
+type PasswordHasher interface {
+	Hash(raw string) (string, error)
+	Compare(hash, raw string) bool
+}
+
+// Clock provides current time.
+type Clock interface {
+	Now() time.Time
+}
 
 // User — агрегат домена аутентификации.
 type User struct {
@@ -32,7 +42,7 @@ type User struct {
 
 // NewUser — регистрация пользователя (создание аккаунта).
 // Сразу валидирует email/phone/name и хеширует пароль.
-func NewUser(clock clockpkg.Clock, email kernel.Email, phone kernel.Phone, name string, rawPassword string) (User, error) {
+func NewUser(email kernel.Email, phone kernel.Phone, name string, rawPassword string, hasher PasswordHasher, clock Clock) (User, error) {
 	if name = normalizeName(name); name == "" {
 		return User{}, ErrNameEmpty
 	}
@@ -40,7 +50,7 @@ func NewUser(clock clockpkg.Clock, email kernel.Email, phone kernel.Phone, name 
 		return User{}, ErrPasswordTooShort
 	}
 
-	hash, err := hashPassword(rawPassword)
+	hash, err := hasher.Hash(rawPassword)
 	if err != nil {
 		return User{}, err
 	}
@@ -63,7 +73,7 @@ func NewUser(clock clockpkg.Clock, email kernel.Email, phone kernel.Phone, name 
 }
 
 // ChangePhone — смена телефона (например, после подтверждения OTP).
-func (u *User) ChangePhone(clock clockpkg.Clock, newPhone kernel.Phone) {
+func (u *User) ChangePhone(newPhone kernel.Phone, clock Clock) {
 	old := u.Phone
 	u.Phone = newPhone
 	now := clock.Now()
@@ -72,7 +82,7 @@ func (u *User) ChangePhone(clock clockpkg.Clock, newPhone kernel.Phone) {
 }
 
 // ChangeName — обновление отображаемого имени.
-func (u *User) ChangeName(clock clockpkg.Clock, newName string) error {
+func (u *User) ChangeName(newName string, clock Clock) error {
 	newName = normalizeName(newName)
 	if newName == "" {
 		return ErrNameEmpty
@@ -89,11 +99,11 @@ func (u *User) ChangeName(clock clockpkg.Clock, newName string) error {
 }
 
 // SetPassword — смена пароля (с валидацией и перезаписью хеша).
-func (u *User) SetPassword(clock clockpkg.Clock, rawPassword string) error {
+func (u *User) SetPassword(rawPassword string, hasher PasswordHasher, clock Clock) error {
 	if len(rawPassword) < 8 {
 		return ErrPasswordTooShort
 	}
-	hash, err := hashPassword(rawPassword)
+	hash, err := hasher.Hash(rawPassword)
 	if err != nil {
 		return err
 	}
@@ -105,27 +115,19 @@ func (u *User) SetPassword(clock clockpkg.Clock, rawPassword string) error {
 }
 
 // VerifyPassword — проверка пароля при логине.
-func (u *User) VerifyPassword(raw string) bool {
+func (u *User) VerifyPassword(raw string, hasher PasswordHasher) bool {
 	if u.PasswordHash == "" {
 		return false
 	}
-	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(raw)) == nil
+	return hasher.Compare(u.PasswordHash, raw)
 }
 
 // MarkLoggedIn — доменное событие логина (можно вызывать после VerifyPassword).
-func (u *User) MarkLoggedIn(clock clockpkg.Clock) {
+func (u *User) MarkLoggedIn(clock Clock) {
 	u.RaiseDomainEvent(NewUserLoggedIn(u.ID(), clock.Now()))
 }
 
 // Вспомогательные функции
-func hashPassword(raw string) (string, error) {
-	b, err := bcrypt.GenerateFromPassword([]byte(raw), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
 func normalizeName(s string) string {
 	// лёгкая нормализация; можно добавить unicode.TrimSpace/Title
 	if len(s) == 0 {

@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"quest-auth/cmd"
-	clockadapter "quest-auth/internal/adapters/out/clock"
+	bcryptadapter "quest-auth/internal/adapters/out/bcrypt"
 	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
+	timeadapter "quest-auth/internal/adapters/out/time"
 	"quest-auth/internal/core/application/usecases/commands"
 	"quest-auth/internal/core/ports"
 
@@ -108,11 +109,13 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 		time.Duration(testConfig.JWTRefreshTokenDuration)*time.Hour,
 	)
 
-	// Создание обработчиков use cases
-	clock := clockadapter.NewSystemClock()
-	loginUserHandler := commands.NewLoginUserHandler(unitOfWork, eventPublisher, jwtService, clock)
-	registerUserHandler := commands.NewRegisterUserHandler(unitOfWork, eventPublisher, jwtService, clock)
+	// Password hasher and clock
+	passwordHasher := bcryptadapter.NewHasher()
+	clock := timeadapter.NewClock()
 
+	// Создание обработчиков use cases
+	loginUserHandler := commands.NewLoginUserHandler(unitOfWork, eventPublisher, jwtService, passwordHasher, clock)
+	registerUserHandler := commands.NewRegisterUserHandler(unitOfWork, eventPublisher, jwtService, passwordHasher, clock)
 	// Create HTTP Router for API testing
 	compositionRoot := cmd.NewCompositionRoot(testConfig, db)
 	httpRouter := cmd.NewRouter(compositionRoot)
