@@ -17,13 +17,13 @@ type UserRegistered struct {
 	At     time.Time
 }
 
-func NewUserRegistered(userID uuid.UUID, email, phone string) UserRegistered {
+func NewUserRegistered(userID uuid.UUID, email, phone string, at time.Time) UserRegistered {
 	return UserRegistered{
 		ID:     uuid.New(),
 		UserID: userID,
 		Email:  email,
 		Phone:  phone,
-		At:     time.Now(),
+		At:     at,
 	}
 }
 
@@ -39,13 +39,13 @@ type UserPhoneChanged struct {
 	At     time.Time
 }
 
-func NewUserPhoneChanged(userID uuid.UUID, old, new string) UserPhoneChanged {
+func NewUserPhoneChanged(userID uuid.UUID, old, new string, at time.Time) UserPhoneChanged {
 	return UserPhoneChanged{
 		ID:     uuid.New(),
 		UserID: userID,
 		Old:    old,
 		New:    new,
-		At:     time.Now(),
+		At:     at,
 	}
 }
 
@@ -61,13 +61,13 @@ type UserNameChanged struct {
 	At     time.Time
 }
 
-func NewUserNameChanged(userID uuid.UUID, old, new string) UserNameChanged {
+func NewUserNameChanged(userID uuid.UUID, old, new string, at time.Time) UserNameChanged {
 	return UserNameChanged{
 		ID:     uuid.New(),
 		UserID: userID,
 		Old:    old,
 		New:    new,
-		At:     time.Now(),
+		At:     at,
 	}
 }
 
@@ -81,11 +81,11 @@ type UserPasswordChanged struct {
 	At     time.Time
 }
 
-func NewUserPasswordChanged(userID uuid.UUID) UserPasswordChanged {
+func NewUserPasswordChanged(userID uuid.UUID, at time.Time) UserPasswordChanged {
 	return UserPasswordChanged{
 		ID:     uuid.New(),
 		UserID: userID,
-		At:     time.Now(),
+		At:     at,
 	}
 }
 

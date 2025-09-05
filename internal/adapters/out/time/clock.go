@@ -1,0 +1,20 @@
+package timeadapter
+
+import (
+	"quest-auth/internal/core/ports"
+	stdtime "time"
+)
+
+// Clock implements ports.Clock using the system time.
+type Clock struct{}
+
+func NewClock() *Clock {
+	return &Clock{}
+}
+
+// Now returns current time.
+func (c *Clock) Now() stdtime.Time {
+	return stdtime.Now()
+}
+
+var _ ports.Clock = (*Clock)(nil)

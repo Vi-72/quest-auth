@@ -13,17 +13,23 @@ type LoginUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
 	jwtService     ports.JWTService
+	passwordHasher ports.PasswordHasher
+	clock          ports.Clock
 }
 
 func NewLoginUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
 	jwtService ports.JWTService,
+	passwordHasher ports.PasswordHasher,
+	clock ports.Clock,
 ) *LoginUserHandler {
 	return &LoginUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
 		jwtService:     jwtService,
+		passwordHasher: passwordHasher,
+		clock:          clock,
 	}
 }
 
@@ -43,12 +49,12 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 	}
 
 	// Проверка пароля
-	if !user.VerifyPassword(cmd.Password) {
+	if !user.VerifyPassword(cmd.Password, h.passwordHasher) {
 		return LoginUserResult{}, errs.NewDomainValidationError("credentials", "invalid email or password")
 	}
 
 	// Отметка о входе (создание доменного события)
-	user.MarkLoggedIn()
+	user.MarkLoggedIn(h.clock)
 
 	// Публикация доменных событий
 	err = h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())

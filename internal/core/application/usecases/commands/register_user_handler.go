@@ -14,17 +14,23 @@ type RegisterUserHandler struct {
 	unitOfWork     ports.UnitOfWork
 	eventPublisher ports.EventPublisher
 	jwtService     ports.JWTService
+	passwordHasher ports.PasswordHasher
+	clock          ports.Clock
 }
 
 func NewRegisterUserHandler(
 	unitOfWork ports.UnitOfWork,
 	eventPublisher ports.EventPublisher,
 	jwtService ports.JWTService,
+	passwordHasher ports.PasswordHasher,
+	clock ports.Clock,
 ) *RegisterUserHandler {
 	return &RegisterUserHandler{
 		unitOfWork:     unitOfWork,
 		eventPublisher: eventPublisher,
 		jwtService:     jwtService,
+		passwordHasher: passwordHasher,
+		clock:          clock,
 	}
 }
 
@@ -63,7 +69,7 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 	}
 
 	// Создание доменного объекта User
-	user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password)
+	user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password, h.passwordHasher, h.clock)
 	if err != nil {
 		return RegisterUserResult{}, errs.NewDomainValidationError("user", err.Error())
 	}
