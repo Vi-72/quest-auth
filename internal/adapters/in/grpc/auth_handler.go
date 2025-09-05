@@ -47,10 +47,10 @@ func (h *AuthHandler) Authenticate(ctx context.Context, req *authpb.Authenticate
 	// Формируем ответ из данных клеймов
 	response := &authpb.AuthenticateResponse{
 		User: &authpb.User{
-			Id:       info.ID.String(),
-			FullName: info.FullName,
-			Email:    info.Email,
-			Phone:    info.Phone,
+			Id:    info.ID.String(),
+			Name:  info.Name,
+			Email: info.Email,
+			Phone: info.Phone,
 		},
 	}
 

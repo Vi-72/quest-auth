@@ -116,7 +116,7 @@ func (x *AuthenticateResponse) GetUser() *User {
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                // UUID пользователя
-	FullName      string                 `protobuf:"bytes,2,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`    // Полное имя
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                            // Полное имя
 	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`                          // Email адрес
 	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`                          // Номер телефона
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"` // Время создания аккаунта
@@ -161,9 +161,9 @@ func (x *User) GetId() string {
 	return ""
 }
 
-func (x *User) GetFullName() string {
+func (x *User) GetName() string {
 	if x != nil {
-		return x.FullName
+		return x.Name
 	}
 	return ""
 }
@@ -198,16 +198,16 @@ const file_api_proto_auth_proto_rawDesc = "" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\"6\n" +
 	"\x14AuthenticateResponse\x12\x1e\n" +
 	"\x04user\x18\x01 \x01(\v2\n" +
-	".auth.UserR\x04user\"\x9a\x01\n" +
+	".auth.UserR\x04user\"\x91\x01\n" +
 	"\x04User\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tfull_name\x18\x02 \x01(\tR\bfullName\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
 	"\x05phone\x18\x04 \x01(\tR\x05phone\x129\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt2T\n" +
 	"\vAuthService\x12E\n" +
-	"\fAuthenticate\x12\x19.auth.AuthenticateRequest\x1a\x1a.auth.AuthenticateResponseB)Z'quest-auth/internal/generated/grpc/authb\x06proto3"
+	"\fAuthenticate\x12\x19.auth.AuthenticateRequest\x1a\x1a.auth.AuthenticateResponseB\x1eZ\x1cinternal/generated/grpc/authb\x06proto3"
 
 var (
 	file_api_proto_auth_proto_rawDescOnce sync.Once

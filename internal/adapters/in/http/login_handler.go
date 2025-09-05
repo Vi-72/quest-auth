@@ -40,6 +40,7 @@ func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObje
 			Id:    result.User.ID,
 			Email: result.User.Email,
 			Name:  result.User.Name,
+			Phone: &result.User.Phone,
 		},
 	}), nil
 }

@@ -4,7 +4,7 @@ package auth;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "quest-auth/internal/generated/grpc/auth";
+option go_package = "quest-auth/api/proto;auth";
 
 // AuthService предоставляет методы для аутентификации
 service AuthService {
@@ -25,7 +25,7 @@ message AuthenticateResponse {
 // User информация о пользователе
 message User {
     string id = 1;                                // UUID пользователя
-    string full_name = 2;                         // Полное имя
+    string name = 2;                              // Полное имя
     string email = 3;                             // Email адрес
     string phone = 4;                             // Номер телефона
     google.protobuf.Timestamp created_at = 5;     // Время создания аккаунта
