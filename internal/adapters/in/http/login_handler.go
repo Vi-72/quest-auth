@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
+	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/validations"
-	"quest-auth/internal/core/application/usecases/auth"
 	"quest-auth/internal/generated/servers"
 	"quest-auth/internal/pkg/errs"
 )
@@ -19,7 +19,7 @@ func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObje
 	}
 
 	// Execute login command
-	cmd := auth.LoginUserCommand{
+	cmd := commands.LoginUserCommand{
 		Email:    validatedData.Email,
 		Password: validatedData.Password,
 	}

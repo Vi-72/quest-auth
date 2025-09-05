@@ -1,18 +1,16 @@
 package http
 
-import (
-	"quest-auth/internal/core/application/usecases/auth"
-)
+import "quest-auth/internal/core/application/usecases/commands"
 
 // APIHandler реализует StrictServerInterface для OpenAPI
 type APIHandler struct {
-	registerHandler *auth.RegisterUserHandler
-	loginHandler    *auth.LoginUserHandler
+	registerHandler *commands.RegisterUserHandler
+	loginHandler    *commands.LoginUserHandler
 }
 
 func NewAPIHandler(
-	registerHandler *auth.RegisterUserHandler,
-	loginHandler *auth.LoginUserHandler,
+	registerHandler *commands.RegisterUserHandler,
+	loginHandler *commands.LoginUserHandler,
 ) (*APIHandler, error) {
 	return &APIHandler{
 		registerHandler: registerHandler,

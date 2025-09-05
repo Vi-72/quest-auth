@@ -1,4 +1,4 @@
-package auth
+package commands
 
 import "github.com/google/uuid"
 

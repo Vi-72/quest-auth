@@ -1,4 +1,4 @@
-package auth
+package commands
 
 import (
 	"context"
@@ -8,23 +8,6 @@ import (
 	"quest-auth/internal/core/ports"
 	"quest-auth/internal/pkg/errs"
 )
-
-// RegisterUserCommand — команда для регистрации пользователя
-type RegisterUserCommand struct {
-	Email    string
-	Phone    string
-	Name     string
-	Password string
-}
-
-// RegisterUserResult — результат регистрации
-type RegisterUserResult struct {
-	User         UserInfo
-	AccessToken  string
-	RefreshToken string
-	TokenType    string
-	ExpiresIn    int64
-}
 
 // RegisterUserHandler — обработчик регистрации пользователя
 type RegisterUserHandler struct {

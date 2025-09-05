@@ -7,64 +7,50 @@ import (
 	"strings"
 
 	authpb "quest-auth/api/proto"
-	"quest-auth/internal/core/ports"
+	"quest-auth/internal/core/application/usecases/queries"
 	"quest-auth/internal/pkg/errs"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // AuthHandler реализует gRPC сервис аутентификации
 type AuthHandler struct {
 	authpb.UnimplementedAuthServiceServer
-	jwtService     ports.JWTService
-	userRepository ports.UserRepository
+	authenticateByToken *queries.AuthenticateByTokenHandler
 }
 
 // NewAuthHandler создает новый gRPC handler для аутентификации
 func NewAuthHandler(
-	jwtService ports.JWTService,
-	userRepository ports.UserRepository,
+	authenticateByToken *queries.AuthenticateByTokenHandler,
 ) *AuthHandler {
 	return &AuthHandler{
-		jwtService:     jwtService,
-		userRepository: userRepository,
+		authenticateByToken: authenticateByToken,
 	}
 }
 
 // Authenticate проверяет JWT токен и возвращает информацию о пользователе
 func (h *AuthHandler) Authenticate(ctx context.Context, req *authpb.AuthenticateRequest) (*authpb.AuthenticateResponse, error) {
-	// Валидация входящего запроса
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
-
 	if strings.TrimSpace(req.JwtToken) == "" {
 		return nil, status.Error(codes.InvalidArgument, "jwt_token is required")
 	}
 
-	// Валидация JWT токена
-	claims, err := h.jwtService.ValidateAccessToken(req.JwtToken)
-	if err != nil {
-		// Конвертируем доменные ошибки в gRPC статусы
-		return nil, h.convertErrorToGRPCStatus(err)
-	}
-
-	// Получение пользователя из базы данных по ID из токена
-	user, err := h.userRepository.GetByID(claims.UserID)
+	// Валидация JWT токена и извлечение данных из клеймов без обращения к БД
+	info, err := h.authenticateByToken.Handle(ctx, queries.AuthenticateByTokenQuery{RawToken: req.JwtToken})
 	if err != nil {
 		return nil, h.convertErrorToGRPCStatus(err)
 	}
 
-	// Преобразование доменной модели в gRPC ответ
+	// Формируем ответ из данных клеймов
 	response := &authpb.AuthenticateResponse{
 		User: &authpb.User{
-			Id:        user.ID().String(),
-			FullName:  user.Name,
-			Email:     user.Email.String(),
-			Phone:     user.Phone.String(),
-			CreatedAt: timestamppb.New(user.CreatedAt),
+			Id:       info.ID.String(),
+			FullName: info.FullName,
+			Email:    info.Email,
+			Phone:    info.Phone,
 		},
 	}
 

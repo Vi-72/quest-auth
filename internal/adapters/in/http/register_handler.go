@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
+	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/validations"
-	"quest-auth/internal/core/application/usecases/auth"
 	"quest-auth/internal/generated/servers"
 	"quest-auth/internal/pkg/errs"
 )
@@ -19,7 +19,7 @@ func (a *APIHandler) Register(ctx context.Context, request servers.RegisterReque
 	}
 
 	// Execute register command
-	cmd := auth.RegisterUserCommand{
+	cmd := commands.RegisterUserCommand{
 		Email:    validatedData.Email,
 		Phone:    validatedData.Phone,
 		Name:     validatedData.Name,

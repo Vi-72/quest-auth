@@ -9,7 +9,8 @@ import (
 	"quest-auth/internal/adapters/out/jwt"
 	"quest-auth/internal/adapters/out/postgres"
 	"quest-auth/internal/adapters/out/postgres/eventrepo"
-	"quest-auth/internal/core/application/usecases/auth"
+	"quest-auth/internal/core/application/usecases/commands"
+	"quest-auth/internal/core/application/usecases/queries"
 	"quest-auth/internal/core/ports"
 	"quest-auth/internal/generated/servers"
 
@@ -73,13 +74,13 @@ func (cr *CompositionRoot) JWTService() ports.JWTService {
 // Auth Use Case Handlers
 
 // NewRegisterUserHandler creates a handler for user registration
-func (cr *CompositionRoot) NewRegisterUserHandler() *auth.RegisterUserHandler {
-	return auth.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
+func (cr *CompositionRoot) NewRegisterUserHandler() *commands.RegisterUserHandler {
+	return commands.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
 }
 
 // NewLoginUserHandler creates a handler for user login
-func (cr *CompositionRoot) NewLoginUserHandler() *auth.LoginUserHandler {
-	return auth.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
+func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
+	return commands.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService())
 }
 
 // HTTP Handlers
@@ -98,8 +99,6 @@ func (cr *CompositionRoot) NewAPIHandler() servers.StrictServerInterface {
 
 // NewGRPCAuthHandler creates gRPC auth handler
 func (cr *CompositionRoot) NewGRPCAuthHandler() *grpc.AuthHandler {
-	return grpc.NewAuthHandler(
-		cr.JWTService(),
-		cr.GetUnitOfWork().UserRepository(),
-	)
+	authenticateByToken := queries.NewAuthenticateByTokenHandler(cr.JWTService())
+	return grpc.NewAuthHandler(authenticateByToken)
 }
