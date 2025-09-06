@@ -1,334 +1,105 @@
 # Quest Auth Service
 
-HTTP-сервис аутентификации с поддержкой регистрации пользователей, авторизации и управления профилями.
+HTTP/gRPC сервис аутентификации с регистрацией, входом и JWT.
 
-## ✨ Основные возможности
+## ✨ Возможности
 
-- 🔐 **Аутентификация**: регистрация, вход и управление сессиями
-- 👤 **Управление пользователями**: создание, получение и обновление профилей
-- 📧 **Валидация контактов**: проверка email и телефонов с форматированием
-- 🔒 **Безопасность**: хеширование паролей с bcrypt
-- 🔄 **Domain Events**: отслеживание пользовательских действий
-- 🏗️ **Clean Architecture**: четкое разделение слоев и ответственности
-- ⚡ **Оптимизированная БД**: индексы для быстрого поиска
+- 🔐 Аутентификация: регистрация и вход
+- 👤 Пользователь: Email, Phone, Name, пароли (bcrypt)
+- 🔒 JWT: HS256, access/refresh, клеймы (id, email, name, phone, created_at)
+- 📦 DDD + Clean Architecture
+- 📜 RFC7807 ошибки
 
 ## 🔧 Запуск
 
-### 📦 Требования
-- Go 1.23+
+### Требования
+- Go 1.21+
 - PostgreSQL
 
-### 🚀 Быстрый старт
+### Быстрый старт
 
-1. **Установите зависимости:**
 ```bash
 go mod download
-```
 
-2. **Настройка переменных окружения:**
-Файл `.env` уже создан с базовой конфигурацией.
+# PostgreSQL через docker compose
+docker compose up -d postgres
 
-3. **Запустите PostgreSQL:**
-
-**Вариант A: Через Docker**
-```bash
-docker run --name quest-auth-postgres \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=quest_auth \
-  -p 5432:5432 -d postgres:15
-```
-
-**Вариант B: Через Homebrew (macOS)**
-```bash
-brew install postgresql
-brew services start postgresql
-createdb quest_auth
-```
-
-4. **Запуск приложения:**
-```bash
+# Запуск приложения
 go run ./cmd/app
 ```
 
-5. **Проверьте работу:**
+Проверка:
 ```bash
-curl http://localhost:8080/health      # Health check
-curl http://localhost:8080/docs        # Swagger UI  
-curl http://localhost:8080/openapi.json # OpenAPI spec
+curl http://localhost:8080/health
 ```
 
-Сервер запускается на порту 8080.
+## 🌐 API
 
-### 🌐 API Endpoints
+HTTP (8080):
+- POST /api/v1/auth/register
+- POST /api/v1/auth/login
 
-#### HTTP REST API (порт 8080)
-**Аутентификация**
-- `POST /api/v1/auth/register` - Регистрация нового пользователя
-- `POST /api/v1/auth/login` - Вход в систему
-
-**Пользователи**  
-- `GET /api/v1/users/{user_id}` - Получение профиля пользователя
-
-**Система**
-- `GET /health` - Проверка состояния сервиса
-
-#### gRPC API (порт 9090)
-**AuthService**
-- `Authenticate(AuthenticateRequest) returns (AuthenticateResponse)` - Проверка JWT токена и получение информации о пользователе
-
-### 📖 Примеры использования API
-
-#### Регистрация пользователя
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "phone": "+1234567890", 
-    "name": "John Doe",
-    "password": "securepassword123"
-  }'
-```
-
-#### Вход в систему
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "securepassword123"
-  }'
-```
-
-#### Получение профиля
-```bash
-curl -X GET http://localhost:8080/api/v1/users/{user_id}
-```
-
-### 🏗️ Структура проекта
-
-```
-quest-auth/
-├── cmd/                    # 🚀 Точка входа
-│   ├── app/                # Главное приложение
-│   ├── composition_root.go # DI контейнер
-│   └── config.go           # Конфигурация
-├── internal/               # 🏗️ Основной код приложения
-│   ├── adapters/           # Адаптеры (Hexagonal Architecture)
-│   │   ├── in/http/        # HTTP handlers & validations
-│   │   └── out/postgres/   # Репозитории БД
-│   │       ├── userrepo/   # User repository
-│   │       └── eventrepo/  # Event store
-│   ├── core/               # Бизнес-логика (DDD)
-│   │   ├── application/    # Use cases & handlers
-│   │   │   └── usecases/   # Auth use cases
-│   │   │       └── auth/   # Register, Login, GetUser
-│   │   ├── domain/         # Доменная модель
-│   │   │   └── model/      # Domain objects
-│   │   │       ├── auth/   # User aggregate
-│   │   │       └── kernel/ # Shared value objects (Email, Phone)
-│   │   └── ports/          # Интерфейсы
-│   └── pkg/                # Общие пакеты
-│       ├── ddd/            # DDD building blocks
-│       └── errs/           # Error types
-├── tests/                  # 🧪 Все тесты проекта
-├── configs/                # ⚙️ Конфигурационные файлы
-└── Makefile                # 🛠️ Команды для разработки
-```
-
-### 🎯 Доменная модель
-
-**User (Пользователь)** - Aggregate Root
-- ID, Email, Phone, Name
-- Password Hash (bcrypt)
-- Timestamps (CreatedAt, UpdatedAt)
-- Методы: Register, Login, ChangePhone, ChangeName, SetPassword
-- Domain Events (UserRegistered, UserLoggedIn, UserPhoneChanged, etc.)
-
-**Email (Электронная почта)** - Value Object
-- Валидация формата через regex
-- Нормализация (trim, lowercase)
-- Обеспечение уникальности
-
-**Phone (Телефон)** - Value Object  
-- Валидация международного формата (+1234567890)
-- Обеспечение уникальности
-- Поддержка различных стран
-
-### 🔐 Безопасность
-
-1. **Хеширование паролей**: bcrypt с настраиваемой сложностью
-2. **Валидация входных данных**: многоуровневая система проверок
-3. **Уникальность контактов**: проверка email/phone при регистрации
-4. **Защита от SQL injection**: используется GORM ORM
-5. **Структурированные ошибки**: RFC 7807 Problem Details
-
-### 🔄 Обработка ошибок
-
-Система использует **правильные HTTP коды**:
-
-```json
-// Ошибка валидации (400)
-{
-  "type": "bad-request",
-  "title": "Bad Request", 
-  "status": 400,
-  "detail": "validation failed: field 'email' is required"
-}
-
-// Неверные учетные данные (401)
-{
-  "type": "unauthorized",
-  "title": "Unauthorized",
-  "status": 401, 
-  "detail": "invalid credentials"
-}
-
-// Пользователь не найден (404)
-{
-  "type": "not-found",
-  "title": "Not Found",
-  "status": 404,
-  "detail": "user with ID 'uuid' not found"
-}
-```
-
-### ⚡ Производительность
-
-#### 🗂️ Индексы БД
-
-```sql
--- Уникальность и быстрый поиск
-CREATE UNIQUE INDEX idx_users_email ON users(email);
-CREATE UNIQUE INDEX idx_users_phone ON users(phone);
-
--- Поиск по ID
-CREATE INDEX idx_users_id ON users(id);
-
--- События
-CREATE INDEX idx_events_aggregate_id ON events(aggregate_id);
-CREATE INDEX idx_events_type ON events(event_type);
-```
-
-## 🔄 Domain-Driven Design
-
-### 🏗️ Паттерны
-
-- **Aggregate Root**: User с инкапсуляцией бизнес-логики
-- **Value Objects**: Email, Phone с валидацией  
-- **Domain Events**: отслеживание пользовательских действий
-- **Unit of Work**: атомарные транзакции
-- **Repository**: абстракция над хранилищем
-
-### 📡 События
-
-```go
-// Автоматически создаются при изменениях
-UserRegistered{UserID, Email, Phone, At, ...}
-UserLoggedIn{UserID, At, ...}  
-UserPhoneChanged{UserID, OldPhone, NewPhone, At, ...}
-UserNameChanged{UserID, OldName, NewName, At, ...}
-UserPasswordChanged{UserID, At, ...}
-```
-
-## 📚 Используемые библиотеки
-
-- [Chi Router](https://github.com/go-chi/chi) - HTTP роутер
-- [GORM](https://gorm.io/) - ORM для работы с БД
-- [bcrypt](https://golang.org/x/crypto/bcrypt) - Хеширование паролей
-- [UUID](https://github.com/google/uuid) - Генерация UUID
+gRPC (9090):
+- AuthService.Authenticate
 
 ## 🧪 Тестирование
 
-### 📊 Запуск тестов
-
 ```bash
-# Unit тесты доменной логики
+# Доменные тесты
 go test ./tests/domain -v
 
-# Интеграционные тесты с PostgreSQL  
+# Контракты
+go test ./tests/contracts -v
+
+# Интеграционные (нужен Postgres)
 go test -tags=integration ./tests/integration/... -v
 
-# Все тесты сразу
-make test-all
+# Отдельные группы
+go test -tags=integration ./tests/integration/tests/auth_http_tests -v
+go test -tags=integration ./tests/integration/tests/auth_handler_tests -v
+go test -tags=integration ./tests/integration/tests/auth_grpc_tests -v
+go test -tags=integration ./tests/integration/tests/repository_tests -v
+go test -tags=integration ./tests/integration/tests/auth_e2e_tests -v
 ```
 
-### 🔧 Требования для интеграционных тестов
+## 🏗️ Структура
 
-```bash
-# PostgreSQL через Docker
-docker compose up -d postgres
-
-# Создание тестовой БД (автоматически)
-CREATE DATABASE quest_auth_test;
+```
+internal/
+  adapters/
+    in/http/        # HTTP handlers, validations, problems
+    in/grpc/        # gRPC handlers
+    out/postgres/   # Repositories
+    out/jwt/        # JWT service
+  core/
+    application/    # usecases/commands, queries
+    domain/         # model/auth, model/kernel
+    ports/          # interfaces (repositories, unit_of_work, jwt_service)
+  pkg/ddd, pkg/errs
 ```
 
-## 🚀 Развертывание
-
-### 🐳 Docker
+## ⚙️ ENV
 
 ```bash
-# Сборка образа
-docker build -t quest-auth .
-
-# Запуск с БД
-docker compose up
-```
-
-### ⚙️ Переменные окружения
-
-```bash
-# Server Configuration
 HTTP_PORT=8080
 GRPC_PORT=9090
-
-# Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=username
-DB_PASSWORD=secret
-DB_NAME=quest_auth
+DB_USER=postgres
+DB_PASSWORD=password
+DB_NAME=auth
 DB_SSLMODE=disable
-
-# Events
 EVENT_GOROUTINE_LIMIT=10
-
-# JWT Configuration
-JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
-JWT_ACCESS_TOKEN_DURATION=15    # в минутах
-JWT_REFRESH_TOKEN_DURATION=168  # в часах (7 дней)
+JWT_SECRET_KEY=dev-secret
+JWT_ACCESS_TOKEN_DURATION=15
+JWT_REFRESH_TOKEN_DURATION=168
 ```
 
-## 🔧 Разработка
+## 📚 Полезное
 
-Проект следует принципам **Clean Architecture** и **Domain-Driven Design**:
-
-- **Domain Layer**: Богатая доменная модель с бизнес-правилами
-- **Application Layer**: Use cases, обработчики команд
-- **Infrastructure Layer**: Репозитории, внешние адаптеры  
-- **Ports & Adapters**: Инверсия зависимостей, тестируемость
-
-### 🎯 Архитектурные решения
-
-- **Безопасность**: bcrypt + валидация на всех уровнях
-- **Производительность**: индексы БД + оптимизированные запросы
-- **Масштабируемость**: Event Sourcing ready для интеграций
-- **Тестируемость**: DI + порты/адаптеры для изоляции
-- **Поддерживаемость**: четкое разделение ответственности
-
-## 📈 Мониторинг
-
-### Health Check
-```bash
-curl http://localhost:8080/health
-# Response: {"status":"ok"}
-```
-
-### Логирование
-- Структурированные логи всех операций
-- Отслеживание аутентификации и ошибок
-- Domain events для аудита действий пользователей
+- Скрипты: `./scripts/test-stats.sh`, `./scripts/coverage-check.sh`
+- OpenAPI: сгенерированные модели в `internal/generated/`
+- gRPC: proto и сгенерированный код в `api/proto`
 
 ---
-
-**Quest Auth Service** - надежный и масштабируемый микросервис аутентификации, готовый к production использованию! 🚀
+Готов к локальной разработке и CI. 🚀
