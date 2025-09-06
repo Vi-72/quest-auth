@@ -7,7 +7,7 @@ import (
 	"context"
 	"strings"
 
-	"quest-auth/internal/core/application/usecases/commands"
+	casesteps "quest-auth/tests/integration/core/case_steps"
 	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
 )
 
@@ -16,15 +16,12 @@ func (s *Suite) TestLoginHandler_Success() {
 
 	// Pre-condition: register a user via RegisterUserHandler
 	data := testdatagenerators.RandomUserData()
-	regRes, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	regRes, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	// Assert pre-condition
 	s.Require().NoError(err)
 
 	// Act: perform login via LoginUserHandler
-	loginRes, err := s.TestDIContainer.LoginUserHandler.Handle(ctx, commands.LoginUserCommand{
-		Email:    data.Email,
-		Password: data.Password,
-	})
+	loginRes, err := casesteps.LoginUserStep(ctx, s.TestDIContainer.LoginUserHandler, data.Email, data.Password)
 
 	// Assert
 	s.Require().NoError(err)
@@ -45,10 +42,7 @@ func (s *Suite) TestLoginHandler_Unauthorized_InvalidCredentials() {
 	// Pre-condition: no user registered
 
 	// Act: call login with wrong credentials
-	_, err := s.TestDIContainer.LoginUserHandler.Handle(ctx, commands.LoginUserCommand{
-		Email:    "nouser@example.com",
-		Password: "wrongpass",
-	})
+	_, err := casesteps.LoginUserStep(ctx, s.TestDIContainer.LoginUserHandler, "nouser@example.com", "wrongpass")
 
 	// Assert: expect error
 	s.Require().Error(err)
@@ -57,10 +51,7 @@ func (s *Suite) TestLoginHandler_Unauthorized_InvalidCredentials() {
 func (s *Suite) TestLoginHandler_Validation_InvalidEmail() {
 	ctx := context.Background()
 	// Pre-condition: no need to register for email validation
-	_, err := s.TestDIContainer.LoginUserHandler.Handle(ctx, commands.LoginUserCommand{
-		Email:    "bad-email",
-		Password: "somepassword",
-	})
+	_, err := casesteps.LoginUserStep(ctx, s.TestDIContainer.LoginUserHandler, "bad-email", "somepassword")
 	// Assert
 	s.Require().Error(err)
 }
@@ -69,14 +60,11 @@ func (s *Suite) TestLoginHandler_Validation_WrongPassword() {
 	ctx := context.Background()
 	// Pre-condition: register valid user
 	data := testdatagenerators.RandomUserData()
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().NoError(err)
 
 	// Act: login with wrong password
-	_, err = s.TestDIContainer.LoginUserHandler.Handle(ctx, commands.LoginUserCommand{
-		Email:    data.Email,
-		Password: "wrongpass",
-	})
+	_, err = casesteps.LoginUserStep(ctx, s.TestDIContainer.LoginUserHandler, data.Email, "wrongpass")
 	// Assert
 	s.Require().Error(err)
 }

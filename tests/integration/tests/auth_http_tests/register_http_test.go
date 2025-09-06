@@ -37,8 +37,7 @@ func (s *Suite) TestRegisterHTTP_Validation_EmptyBody() {
 	// Act
 	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 	// Assert
-	s.Assert().Equal(400, resp.StatusCode)
-	s.Assert().NoError(err)
+	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 }
 
 func (s *Suite) TestRegisterHTTP_Validation_InvalidEmail() {
@@ -48,9 +47,9 @@ func (s *Suite) TestRegisterHTTP_Validation_InvalidEmail() {
 	body["email"] = "invalid-email"
 	// Act
 	req := casesteps.RegisterHTTPRequest(body)
-	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 	// Assert
-	s.Assert().Equal(400, resp.StatusCode)
+	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 }
 
 func (s *Suite) TestRegisterHTTP_Validation_EmptyFields() {
@@ -65,8 +64,8 @@ func (s *Suite) TestRegisterHTTP_Validation_EmptyFields() {
 	for _, b := range cases {
 		// Act
 		req := casesteps.RegisterHTTPRequest(b)
-		resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+		resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 		// Assert
-		s.Assert().Equal(400, resp.StatusCode)
+		assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 	}
 }

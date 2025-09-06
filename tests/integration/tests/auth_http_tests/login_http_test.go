@@ -36,9 +36,9 @@ func (s *Suite) TestLoginHTTP_Validation_EmptyBody() {
 	// Pre-condition: empty body
 	req := casesteps.LoginHTTPRequest(map[string]any{})
 	// Act
-	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 	// Assert
-	s.Assert().Equal(400, resp.StatusCode)
+	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 }
 
 func (s *Suite) TestLoginHTTP_Validation_InvalidEmailFormat() {
@@ -46,9 +46,9 @@ func (s *Suite) TestLoginHTTP_Validation_InvalidEmailFormat() {
 	// Pre-condition: invalid email format
 	req := casesteps.LoginHTTPRequest(map[string]any{"email": "invalid", "password": "password"})
 	// Act
-	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 	// Assert
-	s.Assert().Equal(400, resp.StatusCode)
+	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 }
 
 func (s *Suite) TestLoginHTTP_Validation_MissingPassword() {
@@ -56,7 +56,7 @@ func (s *Suite) TestLoginHTTP_Validation_MissingPassword() {
 	// Pre-condition: missing password
 	req := casesteps.LoginHTTPRequest(map[string]any{"email": "user@example.com"})
 	// Act
-	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 	// Assert
-	s.Assert().Equal(400, resp.StatusCode)
+	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
 }

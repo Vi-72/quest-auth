@@ -23,13 +23,3 @@ func (a *UserFieldAssertions) VerifyHTTPResponseMatchesRegister(resp *servers.Re
 		a.assert.Equal(*reqPhone, *resp.User.Phone)
 	}
 }
-
-// VerifyHTTPResponseMatchesLogin verifies that login HTTP response contains expected user fields
-func (a *UserFieldAssertions) VerifyHTTPResponseMatchesLogin(resp *servers.LoginResponse, expectedEmail, expectedName string, expectedPhone *string) {
-	a.assert.Equal(strings.ToLower(expectedEmail), strings.ToLower(resp.User.Email))
-	a.assert.Equal(expectedName, resp.User.Name)
-	if expectedPhone != nil {
-		a.assert.NotNil(resp.User.Phone)
-		a.assert.Equal(*expectedPhone, *resp.User.Phone)
-	}
-}

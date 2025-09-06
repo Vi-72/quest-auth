@@ -88,13 +88,3 @@ func LoginHTTPRequest(body interface{}) HTTPRequest {
 		ContentType: "application/json",
 	}
 }
-
-// CreateMalformedJSONRequest creates request with invalid JSON
-func CreateMalformedJSONRequest(method, url string) HTTPRequest {
-	return HTTPRequest{
-		Method:      method,
-		URL:         url,
-		Body:        `{"invalid": json,`,
-		ContentType: "application/json",
-	}
-}

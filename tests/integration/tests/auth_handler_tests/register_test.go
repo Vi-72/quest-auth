@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	casesteps "quest-auth/tests/integration/core/case_steps"
 	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
 )
 
@@ -16,7 +17,7 @@ func (s *Suite) TestRegisterHandler_Success() {
 	// Pre-condition: prepare random user data
 	data := testdatagenerators.RandomUserData()
 	// Act: call RegisterUserHandler directly
-	res, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	res, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	// Assert
 	s.Require().NoError(err)
 
@@ -34,7 +35,7 @@ func (s *Suite) TestRegisterHandler_Validation_InvalidEmail() {
 	ctx := context.Background()
 	data := testdatagenerators.RandomUserData()
 	data.Email = "not-an-email"
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().Error(err)
 }
 
@@ -42,7 +43,7 @@ func (s *Suite) TestRegisterHandler_Validation_InvalidPhone() {
 	ctx := context.Background()
 	data := testdatagenerators.RandomUserData()
 	data.Phone = "12345" // invalid, missing + and too short
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().Error(err)
 }
 
@@ -50,7 +51,7 @@ func (s *Suite) TestRegisterHandler_Validation_EmptyName() {
 	ctx := context.Background()
 	data := testdatagenerators.RandomUserData()
 	data.Name = "  "
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().Error(err)
 }
 
@@ -58,30 +59,30 @@ func (s *Suite) TestRegisterHandler_Validation_ShortPassword() {
 	ctx := context.Background()
 	data := testdatagenerators.RandomUserData()
 	data.Password = "short"
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, data.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().Error(err)
 }
 
 func (s *Suite) TestRegisterHandler_Validation_EmailAlreadyExists() {
 	ctx := context.Background()
 	first := testdatagenerators.RandomUserData()
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, first.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, first)
 	s.Require().NoError(err)
 
 	second := testdatagenerators.RandomUserData()
 	second.Email = first.Email // duplicate email
-	_, err = s.TestDIContainer.RegisterUserHandler.Handle(ctx, second.ToRegisterCommand())
+	_, err = casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, second)
 	s.Require().Error(err)
 }
 
 func (s *Suite) TestRegisterHandler_Validation_PhoneAlreadyExists() {
 	ctx := context.Background()
 	first := testdatagenerators.RandomUserData()
-	_, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, first.ToRegisterCommand())
+	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, first)
 	s.Require().NoError(err)
 
 	second := testdatagenerators.RandomUserData()
 	second.Phone = first.Phone // duplicate phone
-	_, err = s.TestDIContainer.RegisterUserHandler.Handle(ctx, second.ToRegisterCommand())
+	_, err = casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, second)
 	s.Require().Error(err)
 }
