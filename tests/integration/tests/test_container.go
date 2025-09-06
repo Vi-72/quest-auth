@@ -1,4 +1,4 @@
-package core
+package tests
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	timeadapter "quest-auth/internal/adapters/out/time"
 	"quest-auth/internal/core/application/usecases/commands"
 	"quest-auth/internal/core/ports"
+	stor "quest-auth/tests/integration/core/storage"
 
 	"gorm.io/gorm"
 )
@@ -61,6 +62,9 @@ type TestDIContainer struct {
 
 	// HTTP Router for API testing
 	HTTPRouter http.Handler
+
+	// Test storages
+	EventStorage *stor.EventStorage
 }
 
 // NewTestDIContainer создает новый TestDIContainer для тестов
@@ -121,6 +125,9 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 	compositionRoot := cmd.NewCompositionRoot(testConfig, db)
 	httpRouter := cmd.NewRouter(compositionRoot)
 
+	// Event storage helper
+	eventStorage := stor.NewEventStorage(db)
+
 	return TestDIContainer{
 		SuiteDIContainer: suiteContainer,
 		DB:               db,
@@ -139,7 +146,8 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 		LoginUserHandler:    loginUserHandler,
 		RegisterUserHandler: registerUserHandler,
 
-		HTTPRouter: httpRouter,
+		HTTPRouter:   httpRouter,
+		EventStorage: eventStorage,
 	}
 }
 

@@ -15,3 +15,7 @@ func (c fakeClock) Now() time.Time {
 	}
 	return time.Now()
 }
+
+// Expose constructors used by integration tests
+func NewMockPasswordHasher() fakeHasher { return fakeHasher{} }
+func NewMockClock() fakeClock           { return fakeClock{} }

@@ -28,7 +28,7 @@ func NewUserRegistered(userID uuid.UUID, email, phone string, at time.Time) User
 }
 
 func (e UserRegistered) GetID() uuid.UUID          { return e.ID }
-func (e UserRegistered) GetName() string           { return "UserRegistered" }
+func (e UserRegistered) GetName() string           { return "user.registered" }
 func (e UserRegistered) GetAggregateID() uuid.UUID { return e.UserID }
 
 type UserPhoneChanged struct {
@@ -108,5 +108,5 @@ func NewUserLoggedIn(userID uuid.UUID, at time.Time) UserLoggedIn {
 }
 
 func (e UserLoggedIn) GetID() uuid.UUID          { return e.ID }
-func (e UserLoggedIn) GetName() string           { return "UserLoggedIn" }
+func (e UserLoggedIn) GetName() string           { return "user.login" }
 func (e UserLoggedIn) GetAggregateID() uuid.UUID { return e.UserID }

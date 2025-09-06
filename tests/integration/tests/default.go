@@ -1,4 +1,4 @@
-package core
+package tests
 
 import (
 	"quest-auth/cmd"
