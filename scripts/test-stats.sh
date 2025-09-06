@@ -65,32 +65,26 @@ run_tests_with_stats() {
     return $exit_code
 }
 
-# Функция для repository тестов с integration tag
-run_repository_tests() {
-    echo "🧪 Running Repository Tests with integration tag..."
+run_tests_with_stats_integration() {
+    local test_path="$1"
+    local test_name="${2:-Integration Tests}"
+    echo "🧪 Running $test_name (with -tags=integration)..."
     echo "═══════════════════════════════════════════════════════════════"
-    
-    # Запускаем тесты и сохраняем вывод
-    output=$(go test -tags=integration ./tests/integration/tests/repository_tests -v 2>&1)
+
+    output=$(go test -tags=integration $test_path -v 2>&1)
     exit_code=$?
-    
-    # Выводим полный вывод
+
     echo "$output"
     echo ""
-    
-    # Подсчитываем статистику
+
     passed=$(echo "$output" | grep "\-\-\- PASS" | wc -l | tr -d ' ')
     failed=$(echo "$output" | grep "\-\-\- FAIL" | wc -l | tr -d ' ')
     skipped=$(echo "$output" | grep "\-\-\- SKIP" | wc -l | tr -d ' ')
-    
-    # Убеждаемся что переменные не пусты
     passed=${passed:-0}
     failed=${failed:-0}
     skipped=${skipped:-0}
-    
     total=$((passed + failed + skipped))
-    
-    # Определяем статус
+
     if [ $exit_code -eq 0 ]; then
         status="✅ PASSED"
         status_color="\033[32m"
@@ -98,8 +92,7 @@ run_repository_tests() {
         status="❌ FAILED"
         status_color="\033[31m"
     fi
-    
-    # Выводим красивую статистику
+
     echo "📊 Test Results Summary:"
     echo "═══════════════════════════════════════════════════════════════"
     printf "${status_color}%s\033[0m\n" "$status"
@@ -109,21 +102,17 @@ run_repository_tests() {
     echo "   ❌ Failed:  $failed"
     echo "   ⏭️  Skipped: $skipped"
     echo "   📝 Total:   $total"
-    
     if [ $total -gt 0 ]; then
         pass_rate=$((passed * 100 / total))
         echo "   📊 Success Rate: $pass_rate%"
     fi
-    
     echo "═══════════════════════════════════════════════════════════════"
     echo ""
-    
-    # Возвращаем статистику через глобальные переменные
+
     export LAST_PASSED=$passed
     export LAST_FAILED=$failed
     export LAST_SKIPPED=$skipped
     export LAST_EXIT_CODE=$exit_code
-    
     return $exit_code
 }
 
@@ -148,22 +137,25 @@ case "${1:-help}" in
         run_tests_with_stats "./tests/domain/..." "Domain Tests"
         ;;
     "integration")
-        run_tests_with_stats "./tests/integration/..." "Integration Tests"
+        run_tests_with_stats_integration "./tests/integration/..." "Integration Tests"
         ;;
     "http")
-        run_tests_with_stats "./tests/integration/tests/quest_http_tests/..." "HTTP API Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_http_tests/..." "HTTP API Tests"
         ;;
     "handler")
-        run_tests_with_stats "./tests/integration/tests/quest_handler_tests/..." "Handler Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_handler_tests/..." "Handler Tests"
+        ;;
+    "grpc")
+        run_tests_with_stats_integration "./tests/integration/tests/auth_grpc_tests/..." "gRPC Tests"
         ;;
     "contracts")
         run_tests_with_stats "./tests/contracts/..." "Contract Tests"
         ;;
     "e2e")
-        run_tests_with_stats "./tests/integration/tests/quest_e2e_tests/..." "E2E Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_e2e_tests/..." "E2E Tests"
         ;;
     "repository")
-        run_repository_tests
+        run_tests_with_stats_integration "./tests/integration/tests/repository_tests" "Repository Tests"
         ;;
     "all")
         echo "🎯 Running All Test Suites..."
@@ -195,7 +187,7 @@ case "${1:-help}" in
         fi
         
         echo ""
-        run_tests_with_stats "./tests/integration/tests/quest_http_tests/..." "HTTP API Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_http_tests/..." "HTTP API Tests"
         total_passed=$((total_passed + LAST_PASSED))
         total_failed=$((total_failed + LAST_FAILED))
         total_skipped=$((total_skipped + LAST_SKIPPED))
@@ -204,7 +196,7 @@ case "${1:-help}" in
         fi
         
         echo ""
-        run_tests_with_stats "./tests/integration/tests/quest_handler_tests/..." "Handler Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_handler_tests/..." "Handler Tests"
         total_passed=$((total_passed + LAST_PASSED))
         total_failed=$((total_failed + LAST_FAILED))
         total_skipped=$((total_skipped + LAST_SKIPPED))
@@ -213,7 +205,7 @@ case "${1:-help}" in
         fi
         
         echo ""
-        run_tests_with_stats "./tests/integration/tests/quest_e2e_tests/..." "E2E Tests"
+        run_tests_with_stats_integration "./tests/integration/tests/auth_e2e_tests/..." "E2E Tests"
         total_passed=$((total_passed + LAST_PASSED))
         total_failed=$((total_failed + LAST_FAILED))
         total_skipped=$((total_skipped + LAST_SKIPPED))
@@ -222,7 +214,7 @@ case "${1:-help}" in
         fi
         
         echo ""
-        run_repository_tests
+        run_tests_with_stats_integration "./tests/integration/tests/repository_tests" "Repository Tests"
         total_passed=$((total_passed + LAST_PASSED))
         total_failed=$((total_failed + LAST_FAILED))
         total_skipped=$((total_skipped + LAST_SKIPPED))
