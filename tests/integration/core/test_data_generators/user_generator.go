@@ -110,15 +110,6 @@ func NewUser(opts ...Option) UserTestData {
 	return data
 }
 
-func WithRand(rng *rand.Rand) Option {
-	return func(_ *UserTestData, _ *rand.Rand) { defaultRng = rng }
-}
-
-func WithEmail(email string) Option { return func(u *UserTestData, _ *rand.Rand) { u.Email = email } }
-func WithPhone(phone string) Option { return func(u *UserTestData, _ *rand.Rand) { u.Phone = phone } }
-func WithName(name string) Option   { return func(u *UserTestData, _ *rand.Rand) { u.Name = name } }
-func WithPassword(p string) Option  { return func(u *UserTestData, _ *rand.Rand) { u.Password = p } }
-
 func WithRandom() Option {
 	names := []string{"Alice", "Bob", "Charlie", "Diana", "Eve", "Mallory", "Trent"}
 	domains := []string{"example.com", "mail.com", "test.org"}
