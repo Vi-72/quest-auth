@@ -1,3 +1,6 @@
+// REPOSITORY LAYER INTEGRATION TESTS
+// Tests for repository implementations and database interactions
+
 //go:build integration
 
 package repository

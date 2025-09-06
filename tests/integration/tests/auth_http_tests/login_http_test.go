@@ -1,3 +1,6 @@
+// API LAYER VALIDATION TESTS
+// Only tests that correspond to ValidateLoginRequest function
+
 package auth_http_tests
 
 import (
@@ -14,7 +17,7 @@ func (s *Suite) TestLoginHTTP_Success() {
 	httpAsserts := assertions.NewAuthHTTPAssertions(s.Assert())
 	tokenAsserts := assertions.NewAssignAssertions(s.Assert())
 
-	// Ensure user exists first
+	// Ensure user exists via use case
 	data := testdatagenerators.DefaultUserData()
 	_, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().NoError(err)

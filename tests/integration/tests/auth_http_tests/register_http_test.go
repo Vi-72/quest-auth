@@ -1,3 +1,6 @@
+// API LAYER VALIDATION TESTS
+// Only tests that correspond to ValidateRegisterRequest function
+
 package auth_http_tests
 
 import (

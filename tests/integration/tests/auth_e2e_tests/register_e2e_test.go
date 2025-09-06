@@ -39,4 +39,18 @@ func (s *E2ESuite) TestCreateUserThroughAPI() {
 	s.Assert().GreaterOrEqual(len(events), 1)
 }
 
-// добавить тест на проверку валидации с самого нижнего лсоя доменной модели
+// Negative E2E: Domain-level validation error during registration (short password)
+func (s *E2ESuite) TestCreateUserThroughAPI_DomainValidation_ShortPassword() {
+	ctx := context.Background()
+
+	// Prepare invalid request (domain violation: password too short)
+	invalid := testdatagenerators.DefaultUserData().ToRegisterHTTPRequest()
+	invalid["password"] = "short"
+
+	req := casesteps.RegisterHTTPRequest(invalid)
+	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+
+	// Should surface as HTTP 400 with problem details
+	s.Assert().Equal(400, resp.StatusCode)
+	s.Assert().Contains(resp.Body, "Bad Request")
+}

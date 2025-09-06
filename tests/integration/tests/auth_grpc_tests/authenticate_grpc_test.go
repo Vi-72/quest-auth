@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// E2E: Authenticate via gRPC using access token (random user)
+// GRPC: Authenticate via gRPC using access token (random user)
 func (s *Suite) TestAuthenticateThroughGRPC_RandomUser() {
 	ctx := context.Background()
 
@@ -63,4 +63,16 @@ func (s *Suite) TestAuthenticateThroughGRPC_EmptyToken() {
 	s.Equal(codes.InvalidArgument, st.Code())
 }
 
-// добавить тест на проверку валидации с самого нижнего лсоя доменной модели
+// Domain-level: invalid token should surface as Unauthenticated at gRPC
+func (s *Suite) TestAuthenticateThroughGRPC_InvalidToken_DomainError() {
+	ctx := context.Background()
+	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
+	handler := grpcin.NewAuthHandler(authByToken)
+	// malformed/invalid JWT (non-empty) to bypass handler empty-check and trigger lower-layer validation
+	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: "invalid.jwt.token"})
+	s.Require().Error(err)
+	s.Nil(resp)
+	st, ok := status.FromError(err)
+	s.Require().True(ok)
+	s.Equal(codes.Unauthenticated, st.Code())
+}
