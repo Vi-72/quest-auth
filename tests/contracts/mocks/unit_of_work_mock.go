@@ -22,7 +22,7 @@ func (m *MockUnitOfWork) Execute(ctx context.Context, fn func() error) error {
 	if err := m.Begin(ctx); err != nil {
 		return err
 	}
-	defer m.Rollback()
+	defer func() { _ = m.Rollback() }()
 	if err := fn(); err != nil {
 		return err
 	}

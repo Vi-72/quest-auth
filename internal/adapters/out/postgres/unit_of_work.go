@@ -102,13 +102,13 @@ func (u *UnitOfWork) Execute(ctx context.Context, fn func() error) error {
 
 	defer func() {
 		if r := recover(); r != nil {
-			u.Rollback()
+			_ = u.Rollback()
 			panic(r)
 		}
 	}()
 
 	if err := fn(); err != nil {
-		u.Rollback()
+		_ = u.Rollback()
 		return err
 	}
 

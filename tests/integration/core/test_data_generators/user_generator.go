@@ -34,7 +34,6 @@ func init() {
 // ============================
 
 func pick[T any](r *rand.Rand, xs []T) T { return xs[r.Intn(len(xs))] }
-func ptr[T any](v T) *T                  { return &v }
 
 // ============================
 // Test data model (User)
