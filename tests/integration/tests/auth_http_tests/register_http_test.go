@@ -18,10 +18,13 @@ func (s *Suite) TestRegisterHTTP_Success() {
 	fieldAsserts := assertions.NewUserFieldAssertions(s.Assert())
 	tokenAsserts := assertions.NewAssignAssertions(s.Assert())
 
+	// Pre-condition: prepare valid body
 	body := testdatagenerators.RandomUserData().ToRegisterHTTPRequest()
+	// Act: perform HTTP request
 	req := casesteps.RegisterHTTPRequest(body)
 	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
 
+	// Assert
 	reg := httpAsserts.RegisterHTTPCreatedSuccessfully(resp, err)
 	fieldAsserts.VerifyHTTPResponseMatchesRegister(&reg, body["email"].(string), body["name"].(string), nil)
 	tokenAsserts.VerifyTokensPresent(reg.TokenType, reg.AccessToken, reg.RefreshToken, reg.ExpiresIn)
@@ -29,23 +32,30 @@ func (s *Suite) TestRegisterHTTP_Success() {
 
 func (s *Suite) TestRegisterHTTP_Validation_EmptyBody() {
 	ctx := context.Background()
+	// Pre-condition: empty body
 	req := casesteps.RegisterHTTPRequest(map[string]any{})
+	// Act
 	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	// Assert
 	s.Assert().Equal(400, resp.StatusCode)
 	s.Assert().NoError(err)
 }
 
 func (s *Suite) TestRegisterHTTP_Validation_InvalidEmail() {
 	ctx := context.Background()
+	// Pre-condition: invalid email
 	body := testdatagenerators.DefaultUserData().ToRegisterHTTPRequest()
 	body["email"] = "invalid-email"
+	// Act
 	req := casesteps.RegisterHTTPRequest(body)
 	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	// Assert
 	s.Assert().Equal(400, resp.StatusCode)
 }
 
 func (s *Suite) TestRegisterHTTP_Validation_EmptyFields() {
 	ctx := context.Background()
+	// Pre-condition: different empty field cases
 	cases := []map[string]any{
 		{"email": "", "phone": "+1234567890", "name": "A", "password": "securepassword123"},
 		{"email": "user@example.com", "phone": "", "name": "A", "password": "securepassword123"},
@@ -53,8 +63,10 @@ func (s *Suite) TestRegisterHTTP_Validation_EmptyFields() {
 		{"email": "user@example.com", "phone": "+1234567890", "name": "A", "password": ""},
 	}
 	for _, b := range cases {
+		// Act
 		req := casesteps.RegisterHTTPRequest(b)
 		resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+		// Assert
 		s.Assert().Equal(400, resp.StatusCode)
 	}
 }

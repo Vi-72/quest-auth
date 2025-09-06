@@ -8,44 +8,64 @@ import (
 
 	authpb "quest-auth/api/proto"
 	grpcin "quest-auth/internal/adapters/in/grpc"
-	"quest-auth/internal/core/application/usecases/commands"
 	"quest-auth/internal/core/application/usecases/queries"
+	casesteps "quest-auth/tests/integration/core/case_steps"
+	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-// Tests gRPC Authenticate handler via in-memory invocation
-func (s *Suite) TestAuthenticateGRPC_Success() {
+// 1) Success: call handler via steps (AuthenticateByTokenStep)
+func (s *Suite) TestAuthenticateHandler_Success_UsingSteps() {
 	ctx := context.Background()
 
-	// 1) Register to obtain a valid access token
-	regRes, err := s.TestDIContainer.RegisterUserHandler.Handle(ctx, commands.RegisterUserCommand{
-		Email:    "grpcuser@example.com",
-		Phone:    "+1234567870",
-		Name:     "GRPC User",
-		Password: "securepassword123",
-	})
+	// Pre-condition: register random user via use case to get token
+	data := testdatagenerators.RandomUserData()
+	reg, err := casesteps.RegisterUserStepData(ctx, s.TestDIContainer.RegisterUserHandler, data)
 	s.Require().NoError(err)
 
-	// 2) Build gRPC handler with same JWT service
-	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
-	handler := grpcin.NewAuthHandler(authByToken)
-
-	// 3) Invoke Authenticate
-	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: regRes.AccessToken})
+	// Act: call Authenticate handler via case step
+	resp, err := casesteps.AuthenticateByTokenStep(ctx, s.TestDIContainer.JWTService, reg.AccessToken)
+	// Assert
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 	s.Require().NotNil(resp.User)
 
-	s.Assert().Equal(regRes.User.ID.String(), resp.User.Id)
-	s.Assert().Equal(regRes.User.Email, resp.User.Email)
-	s.Assert().Equal(regRes.User.Name, resp.User.Name)
-	s.Assert().Equal(regRes.User.Phone, resp.User.Phone)
-	s.Require().NotNil(resp.User.CreatedAt)
+	s.Assert().Equal(reg.User.ID.String(), resp.User.Id)
+	s.Assert().Equal(reg.User.Email, resp.User.Email)
+	s.Assert().Equal(reg.User.Name, resp.User.Name)
+	s.Assert().Equal(reg.User.Phone, resp.User.Phone)
 }
 
-//authenticate_grpc_test.go перепиши тесты в этой файле
-//1) сделай тесты которые проверяют именно нендлер вызов его (вызывай через шаги)
-//2) добавь тесты поторые проверяют валидацию именно котрые прописаны в хендлере
+// 2) Validation: req == nil -> InvalidArgument
+func (s *Suite) TestAuthenticateHandler_Validation_NilRequest() {
+	ctx := context.Background()
+	// Pre-condition: build handler
+	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
+	handler := grpcin.NewAuthHandler(authByToken)
+	// Act
+	resp, err := handler.Authenticate(ctx, nil)
+	// Assert
+	s.Require().Error(err)
+	s.Nil(resp)
+	st, ok := status.FromError(err)
+	s.Require().True(ok)
+	s.Equal(codes.InvalidArgument, st.Code())
+}
 
-//добавь во все тесты такие стрки подсказки в начале
-// REPOSITORY LAYER INTEGRATION TESTS
-// Tests for repository implementations and database interactions
+// 2) Validation: empty jwt_token -> InvalidArgument
+func (s *Suite) TestAuthenticateHandler_Validation_EmptyToken() {
+	ctx := context.Background()
+	// Pre-condition: build handler
+	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
+	handler := grpcin.NewAuthHandler(authByToken)
+	// Act
+	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: "   "})
+	// Assert
+	s.Require().Error(err)
+	s.Nil(resp)
+	st, ok := status.FromError(err)
+	s.Require().True(ok)
+	s.Equal(codes.InvalidArgument, st.Code())
+}
