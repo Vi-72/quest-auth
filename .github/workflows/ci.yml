@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,24 +7,29 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  test:
+    name: Run All Tests
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:15
-        ports:
-          - 5433:5432
         env:
           POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
           POSTGRES_DB: auth_test
         options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21.x'
@@ -39,37 +44,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Install tools
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5433 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Install proto/grpc tools
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.1
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0
 
-      - name: Setup env
+      - name: Run Unit and Contract Tests
         run: |
-          echo "HTTP_PORT=8080" >> $GITHUB_ENV
-          echo "GRPC_PORT=9090" >> $GITHUB_ENV
-          echo "DB_HOST=localhost" >> $GITHUB_ENV
-          echo "DB_PORT=5433" >> $GITHUB_ENV
-          echo "DB_USER=postgres" >> $GITHUB_ENV
-          echo "DB_PASSWORD=password" >> $GITHUB_ENV
-          echo "DB_NAME=auth_test" >> $GITHUB_ENV
-          echo "DB_SSLMODE=disable" >> $GITHUB_ENV
-          echo "JWT_SECRET_KEY=test-ci-secret" >> $GITHUB_ENV
-          echo "JWT_ACCESS_TOKEN_DURATION=15" >> $GITHUB_ENV
-          echo "JWT_REFRESH_TOKEN_DURATION=168" >> $GITHUB_ENV
+          echo "🧪 Running Unit Tests..."
+          go test ./tests/domain -v -race
+          echo "🤝 Running Contract Tests..."
+          go test ./tests/contracts -v -race
 
-      - name: Verify build
-        run: go build ./...
-
-      - name: Run unit and contract tests
-        run: |
-          go test ./tests/domain -v
-          go test ./tests/contracts -v
-
-      - name: Run integration tests
+      - name: Run Integration Tests
         env:
           DB_HOST: localhost
-          DB_PORT: 5433
+          DB_PORT: "5433"
           DB_USER: postgres
           DB_PASSWORD: password
           DB_NAME: auth_test
@@ -78,8 +78,45 @@ jobs:
           JWT_ACCESS_TOKEN_DURATION: 15
           JWT_REFRESH_TOKEN_DURATION: 168
         run: |
-          go test -tags=integration ./tests/integration/tests/repository_tests -v
-          go test -tags=integration ./tests/integration/tests/auth_handler_tests -v
-          go test -tags=integration ./tests/integration/tests/auth_http_tests -v
-          go test -tags=integration ./tests/integration/tests/auth_grpc_tests -v
-          go test -tags=integration ./tests/integration/tests/auth_e2e_tests -v
+          echo "🔗 Running Integration Tests..."
+          go test -tags=integration ./tests/integration/tests/repository_tests -v -race -p 1 -count=1
+          go test -tags=integration ./tests/integration/tests/auth_handler_tests -v -race -p 1 -count=1
+          go test -tags=integration ./tests/integration/tests/auth_http_tests -v -race -p 1 -count=1
+          go test -tags=integration ./tests/integration/tests/auth_grpc_tests -v -race -p 1 -count=1
+          go test -tags=integration ./tests/integration/tests/auth_e2e_tests -v -race -p 1 -count=1
+
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+
+      - name: Build application
+        run: |
+          echo "🔨 Building Quest Auth..."
+          go build ./...

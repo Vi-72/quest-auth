@@ -139,12 +139,3 @@ func WithRandom() Option {
 
 func DefaultUserData() UserTestData { return NewUser() }
 func RandomUserData() UserTestData  { return NewUser(WithRandom()) }
-func RegisterRequestFromDefault() servers.RegisterRequest {
-	req := NewUser().ToRegisterRequest()
-	return req
-}
-func RegisterRequestRandom() servers.RegisterRequest {
-	req := NewUser(WithRandom()).ToRegisterRequest()
-	return req
-}
-func LoginRequestFrom(u UserTestData) servers.LoginRequest { return u.ToLoginRequest() }

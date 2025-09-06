@@ -20,8 +20,8 @@ func TestUser_Events_OnNewUser(t *testing.T) {
 
 	events := u.GetDomainEvents()
 	require.Len(t, events, 1)
-	// First event should be UserRegistered
-	assert.Equal(t, "UserRegistered", events[0].GetName())
+	// First event should be user.registered
+	assert.Equal(t, "user.registered", events[0].GetName())
 }
 
 func TestUser_Events_OnChangePhone(t *testing.T) {
@@ -78,5 +78,5 @@ func TestUser_Events_OnLoggedIn(t *testing.T) {
 
 	events := u.GetDomainEvents()
 	require.Len(t, events, 1)
-	assert.Equal(t, "UserLoggedIn", events[0].GetName())
+	assert.Equal(t, "user.login", events[0].GetName())
 }
