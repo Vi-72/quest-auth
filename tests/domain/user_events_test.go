@@ -15,7 +15,7 @@ func TestUser_Events_OnNewUser(t *testing.T) {
 	email, _ := kernel.NewEmail("user@example.com")
 	phone, _ := kernel.NewPhone("+1234567890")
 
-	u, err := auth.NewUser(email, phone, "John Doe", "password123", fakeHasher{}, fakeClock{})
+	u, err := auth.NewUser(email, phone, "John Doe", "password123", FakeHasher{}, FakeClock{})
 	require.NoError(t, err)
 
 	events := u.GetDomainEvents()
@@ -27,11 +27,11 @@ func TestUser_Events_OnNewUser(t *testing.T) {
 func TestUser_Events_OnChangePhone(t *testing.T) {
 	email, _ := kernel.NewEmail("user@example.com")
 	phone, _ := kernel.NewPhone("+1234567890")
-	u, _ := auth.NewUser(email, phone, "John Doe", "password123", fakeHasher{}, fakeClock{})
+	u, _ := auth.NewUser(email, phone, "John Doe", "password123", FakeHasher{}, FakeClock{})
 	u.ClearDomainEvents()
 
 	newPhone, _ := kernel.NewPhone("+1234567899")
-	u.ChangePhone(newPhone, fakeClock{})
+	u.ChangePhone(newPhone, FakeClock{})
 
 	events := u.GetDomainEvents()
 	require.Len(t, events, 1)
@@ -41,10 +41,10 @@ func TestUser_Events_OnChangePhone(t *testing.T) {
 func TestUser_Events_OnChangeName(t *testing.T) {
 	email, _ := kernel.NewEmail("user@example.com")
 	phone, _ := kernel.NewPhone("+1234567890")
-	u, _ := auth.NewUser(email, phone, "John Doe", "password123", fakeHasher{}, fakeClock{})
+	u, _ := auth.NewUser(email, phone, "John Doe", "password123", FakeHasher{}, FakeClock{})
 	u.ClearDomainEvents()
 
-	err := u.ChangeName("Jane Smith", fakeClock{})
+	err := u.ChangeName("Jane Smith", FakeClock{})
 	require.NoError(t, err)
 
 	events := u.GetDomainEvents()
@@ -55,10 +55,10 @@ func TestUser_Events_OnChangeName(t *testing.T) {
 func TestUser_Events_OnSetPassword(t *testing.T) {
 	email, _ := kernel.NewEmail("user@example.com")
 	phone, _ := kernel.NewPhone("+1234567890")
-	u, _ := auth.NewUser(email, phone, "John Doe", "password123", fakeHasher{}, fakeClock{})
+	u, _ := auth.NewUser(email, phone, "John Doe", "password123", FakeHasher{}, FakeClock{})
 	u.ClearDomainEvents()
 
-	err := u.SetPassword("newpassword456", fakeHasher{}, fakeClock{})
+	err := u.SetPassword("newpassword456", FakeHasher{}, FakeClock{})
 	require.NoError(t, err)
 
 	events := u.GetDomainEvents()
@@ -69,12 +69,12 @@ func TestUser_Events_OnSetPassword(t *testing.T) {
 func TestUser_Events_OnLoggedIn(t *testing.T) {
 	email, _ := kernel.NewEmail("user@example.com")
 	phone, _ := kernel.NewPhone("+1234567890")
-	u, _ := auth.NewUser(email, phone, "John Doe", "password123", fakeHasher{}, fakeClock{})
+	u, _ := auth.NewUser(email, phone, "John Doe", "password123", FakeHasher{}, FakeClock{})
 	u.ClearDomainEvents()
 
 	// simulate login at specific time for determinism of At ordering if needed
 	time.Sleep(1 * time.Millisecond)
-	u.MarkLoggedIn(fakeClock{})
+	u.MarkLoggedIn(FakeClock{})
 
 	events := u.GetDomainEvents()
 	require.Len(t, events, 1)

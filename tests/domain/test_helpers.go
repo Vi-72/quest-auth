@@ -2,14 +2,14 @@ package domain
 
 import "time"
 
-type fakeHasher struct{}
+type FakeHasher struct{}
 
-func (fakeHasher) Hash(raw string) (string, error) { return "hash:" + raw, nil }
-func (fakeHasher) Compare(hash, raw string) bool   { return hash == "hash:"+raw }
+func (FakeHasher) Hash(raw string) (string, error) { return "hash:" + raw, nil }
+func (FakeHasher) Compare(hash, raw string) bool   { return hash == "hash:"+raw }
 
-type fakeClock struct{ t time.Time }
+type FakeClock struct{ t time.Time }
 
-func (c fakeClock) Now() time.Time {
+func (c FakeClock) Now() time.Time {
 	if !c.t.IsZero() {
 		return c.t
 	}
@@ -17,5 +17,5 @@ func (c fakeClock) Now() time.Time {
 }
 
 // Expose constructors used by integration tests
-func NewMockPasswordHasher() fakeHasher { return fakeHasher{} }
-func NewMockClock() fakeClock           { return fakeClock{} }
+func NewMockPasswordHasher() FakeHasher { return FakeHasher{} }
+func NewMockClock() FakeClock           { return FakeClock{} }
