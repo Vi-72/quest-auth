@@ -3,12 +3,12 @@ package cmd
 import (
 	"errors"
 	stdhttp "net/http"
+	openapihttp "quest-auth/api/http/auth/v1"
 	"quest-auth/internal/adapters/in/http/validations"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware" // ← добавлено
 
-	openapihttp "quest-auth/api/http"
 	"quest-auth/internal/adapters/in/http/problems"
 	"quest-auth/internal/pkg/errs"
 )

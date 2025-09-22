@@ -2,7 +2,7 @@ package auth_grpc_tests
 
 import (
 	"context"
-	authpb "quest-auth/api/grpc/proto"
+	authpb "quest-auth/api/grpc/proto/auth/v1"
 
 	grpcin "quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/core/application/usecases/queries"

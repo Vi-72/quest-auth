@@ -2,7 +2,7 @@ package http
 
 import (
 	"context"
-	"quest-auth/api/http"
+	"quest-auth/api/http/auth/v1"
 	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/httperrs"
@@ -10,7 +10,7 @@ import (
 )
 
 // Login implements POST /auth/login from OpenAPI.
-func (a *APIHandler) Login(ctx context.Context, request http.LoginRequestObject) (http.LoginResponseObject, error) {
+func (a *APIHandler) Login(ctx context.Context, request v1.LoginRequestObject) (v1.LoginResponseObject, error) {
 	// Validate login request body (includes nil check)
 	validatedData, validationErr := validations.ValidateLoginUserRequestBody(request.Body)
 	if validationErr != nil {
@@ -31,12 +31,12 @@ func (a *APIHandler) Login(ctx context.Context, request http.LoginRequestObject)
 	}
 
 	// Map result to response directly
-	return http.Login200JSONResponse(http.LoginResponse{
+	return v1.Login200JSONResponse(v1.LoginResponse{
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 		TokenType:    result.TokenType,
 		ExpiresIn:    int(result.ExpiresIn),
-		User: http.User{
+		User: v1.User{
 			Id:    result.User.ID,
 			Email: result.User.Email,
 			Name:  result.User.Name,

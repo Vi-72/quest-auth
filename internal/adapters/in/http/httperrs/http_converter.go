@@ -3,7 +3,7 @@ package httperrs
 import (
 	"errors"
 	stdhttp "net/http"
-	"quest-auth/api/http"
+	"quest-auth/api/http/auth/v1"
 	"quest-auth/internal/pkg/errs"
 )
 
@@ -124,7 +124,7 @@ func ToHTTP(err error) HTTPError {
 }
 
 // ToRegisterResponse converts error to Register strict response wrapper
-func ToRegisterResponse(err error) http.RegisterResponseObject {
+func ToRegisterResponse(err error) v1.RegisterResponseObject {
 	httpErr := ToHTTP(err)
 
 	// OpenAPI schema only supports 400 and 500 for register endpoint
@@ -133,7 +133,7 @@ func ToRegisterResponse(err error) http.RegisterResponseObject {
 		httpErr.StatusCode = stdhttp.StatusBadRequest
 	}
 
-	return http.Register400JSONResponse(http.BadRequest{
+	return v1.Register400JSONResponse(v1.BadRequest{
 		Type:   httpErr.Type,
 		Title:  httpErr.Title,
 		Status: httpErr.Status,
@@ -142,19 +142,19 @@ func ToRegisterResponse(err error) http.RegisterResponseObject {
 }
 
 // ToLoginResponse converts error to Login strict response wrapper
-func ToLoginResponse(err error) http.LoginResponseObject {
+func ToLoginResponse(err error) v1.LoginResponseObject {
 	httpErr := ToHTTP(err)
 
 	switch httpErr.StatusCode {
 	case stdhttp.StatusUnauthorized:
-		return http.Login401JSONResponse(http.Unauthorized{
+		return v1.Login401JSONResponse(v1.Unauthorized{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
 			Detail: httpErr.Detail,
 		})
 	case stdhttp.StatusBadRequest:
-		return http.Login400JSONResponse(http.BadRequest{
+		return v1.Login400JSONResponse(v1.BadRequest{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
@@ -162,7 +162,7 @@ func ToLoginResponse(err error) http.LoginResponseObject {
 		})
 	default:
 		// Default to bad request for other errors
-		return http.Login400JSONResponse(http.BadRequest{
+		return v1.Login400JSONResponse(v1.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,

@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"log"
+	openapihttp "quest-auth/api/http/auth/v1"
 	"time"
 
-	openapihttp "quest-auth/api/http"
 	"quest-auth/internal/adapters/in/grpc"
 	adapterhttp "quest-auth/internal/adapters/in/http"
 	bcryptadapter "quest-auth/internal/adapters/out/bcrypt"

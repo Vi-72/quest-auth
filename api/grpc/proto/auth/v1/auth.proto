@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package auth;
+package auth.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "quest-auth/api/proto;auth";
+option go_package = "quest-auth/api/grpc/proto/auth/v1;authv1";
 
 // AuthService предоставляет методы для аутентификации
 service AuthService {
