@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"log"
+	"quest-auth/api/openapi"
 	"time"
 
+	"gorm.io/gorm"
 	"quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/adapters/in/http"
 	bcryptadapter "quest-auth/internal/adapters/out/bcrypt"
@@ -14,9 +16,6 @@ import (
 	"quest-auth/internal/core/application/usecases/commands"
 	"quest-auth/internal/core/application/usecases/queries"
 	"quest-auth/internal/core/ports"
-	"quest-auth/internal/generated/servers"
-
-	"gorm.io/gorm"
 )
 
 type CompositionRoot struct {
@@ -106,7 +105,7 @@ func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
 // HTTP Handlers
 
 // NewAPIHandler creates OpenAPI handler
-func (cr *CompositionRoot) NewAPIHandler() servers.StrictServerInterface {
+func (cr *CompositionRoot) NewAPIHandler() openapi.StrictServerInterface {
 	handlers, err := http.NewAPIHandler(
 		cr.NewRegisterUserHandler(),
 		cr.NewLoginUserHandler(),

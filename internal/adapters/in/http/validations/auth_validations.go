@@ -2,9 +2,8 @@ package validations
 
 import (
 	"fmt"
+	"quest-auth/api/openapi"
 	"strings"
-
-	"quest-auth/internal/generated/servers"
 )
 
 // RegisterUserRequest — запрос на регистрацию пользователя
@@ -56,7 +55,7 @@ func requireNotZeroLen(field, value string) error {
 }
 
 // ValidateRegisterUserRequestBody валидирует OpenAPI тип для регистрации
-func ValidateRegisterUserRequestBody(body *servers.RegisterJSONRequestBody) (RegisterUserRequest, error) {
+func ValidateRegisterUserRequestBody(body *openapi.RegisterJSONRequestBody) (RegisterUserRequest, error) {
 	if body == nil {
 		return RegisterUserRequest{}, ValidationError{
 			Field:   "body",
@@ -96,7 +95,7 @@ func ValidateRegisterUserRequestBody(body *servers.RegisterJSONRequestBody) (Reg
 }
 
 // ValidateLoginUserRequestBody валидирует OpenAPI тип для входа
-func ValidateLoginUserRequestBody(body *servers.LoginJSONRequestBody) (LoginUserRequest, error) {
+func ValidateLoginUserRequestBody(body *openapi.LoginJSONRequestBody) (LoginUserRequest, error) {
 	if body == nil {
 		return LoginUserRequest{}, ValidationError{
 			Field:   "body",

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"quest-auth/api/openapi"
 	"strconv"
 	"time"
 
-	"quest-auth/internal/core/application/usecases/commands"
-	"quest-auth/internal/generated/servers"
-
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"quest-auth/internal/core/application/usecases/commands"
 )
 
 // ============================
@@ -68,8 +67,8 @@ func (u UserTestData) ToRegisterHTTPRequest() map[string]any {
 	}
 }
 
-func (u UserTestData) ToRegisterRequest() servers.RegisterRequest {
-	return servers.RegisterRequest{
+func (u UserTestData) ToRegisterRequest() openapi.RegisterRequest {
+	return openapi.RegisterRequest{
 		Email:    openapi_types.Email(u.Email),
 		Phone:    u.Phone,
 		Name:     u.Name,
@@ -84,8 +83,8 @@ func (u UserTestData) ToLoginHTTPRequest() map[string]any {
 	}
 }
 
-func (u UserTestData) ToLoginRequest() servers.LoginRequest {
-	return servers.LoginRequest{
+func (u UserTestData) ToLoginRequest() openapi.LoginRequest {
+	return openapi.LoginRequest{
 		Email:    openapi_types.Email(u.Email),
 		Password: u.Password,
 	}

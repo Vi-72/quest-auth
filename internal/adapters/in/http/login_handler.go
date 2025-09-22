@@ -2,15 +2,15 @@ package http
 
 import (
 	"context"
+	"quest-auth/api/openapi"
 	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/httperrs"
 	"quest-auth/internal/adapters/in/http/validations"
-	"quest-auth/internal/generated/servers"
 )
 
 // Login implements POST /auth/login from OpenAPI.
-func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObject) (servers.LoginResponseObject, error) {
+func (a *APIHandler) Login(ctx context.Context, request openapi.LoginRequestObject) (openapi.LoginResponseObject, error) {
 	// Validate login request body (includes nil check)
 	validatedData, validationErr := validations.ValidateLoginUserRequestBody(request.Body)
 	if validationErr != nil {
@@ -31,12 +31,12 @@ func (a *APIHandler) Login(ctx context.Context, request servers.LoginRequestObje
 	}
 
 	// Map result to response directly
-	return servers.Login200JSONResponse(servers.LoginResponse{
+	return openapi.Login200JSONResponse(openapi.LoginResponse{
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 		TokenType:    result.TokenType,
 		ExpiresIn:    int(result.ExpiresIn),
-		User: servers.User{
+		User: openapi.User{
 			Id:    result.User.ID,
 			Email: result.User.Email,
 			Name:  result.User.Name,

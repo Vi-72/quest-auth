@@ -3,8 +3,8 @@ package httperrs
 import (
 	"errors"
 	"net/http"
+	"quest-auth/api/openapi"
 
-	"quest-auth/internal/generated/servers"
 	errs "quest-auth/internal/pkg/errs"
 )
 
@@ -125,7 +125,7 @@ func ToHTTP(err error) HTTPError {
 }
 
 // ToRegisterResponse converts error to Register strict response wrapper
-func ToRegisterResponse(err error) servers.RegisterResponseObject {
+func ToRegisterResponse(err error) openapi.RegisterResponseObject {
 	httpErr := ToHTTP(err)
 
 	// OpenAPI schema only supports 400 and 500 for register endpoint
@@ -134,7 +134,7 @@ func ToRegisterResponse(err error) servers.RegisterResponseObject {
 		httpErr.StatusCode = http.StatusBadRequest
 	}
 
-	return servers.Register400JSONResponse(servers.BadRequest{
+	return openapi.Register400JSONResponse(openapi.BadRequest{
 		Type:   httpErr.Type,
 		Title:  httpErr.Title,
 		Status: httpErr.Status,
@@ -143,19 +143,19 @@ func ToRegisterResponse(err error) servers.RegisterResponseObject {
 }
 
 // ToLoginResponse converts error to Login strict response wrapper
-func ToLoginResponse(err error) servers.LoginResponseObject {
+func ToLoginResponse(err error) openapi.LoginResponseObject {
 	httpErr := ToHTTP(err)
 
 	switch httpErr.StatusCode {
 	case http.StatusUnauthorized:
-		return servers.Login401JSONResponse(servers.Unauthorized{
+		return openapi.Login401JSONResponse(openapi.Unauthorized{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
 			Detail: httpErr.Detail,
 		})
 	case http.StatusBadRequest:
-		return servers.Login400JSONResponse(servers.BadRequest{
+		return openapi.Login400JSONResponse(openapi.BadRequest{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
@@ -163,7 +163,7 @@ func ToLoginResponse(err error) servers.LoginResponseObject {
 		})
 	default:
 		// Default to bad request for other errors
-		return servers.Login400JSONResponse(servers.BadRequest{
+		return openapi.Login400JSONResponse(openapi.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,

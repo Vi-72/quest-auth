@@ -2,16 +2,16 @@ package problems
 
 import (
 	"errors"
+	"quest-auth/api/openapi"
 
-	"quest-auth/internal/generated/servers"
 	"quest-auth/internal/pkg/errs"
 )
 
 // ConvertToLoginResponse конвертирует доменные ошибки в OpenAPI LoginResponseObject
-func ConvertToLoginResponse(err error) servers.LoginResponseObject {
+func ConvertToLoginResponse(err error) openapi.LoginResponseObject {
 	switch {
 	case isInvalidCredentialsError(err):
-		return servers.Login401JSONResponse(servers.Unauthorized{
+		return openapi.Login401JSONResponse(openapi.Unauthorized{
 			Type:   "unauthorized",
 			Title:  "Unauthorized",
 			Status: 401,
@@ -19,7 +19,7 @@ func ConvertToLoginResponse(err error) servers.LoginResponseObject {
 		})
 
 	case isValidationError(err):
-		return servers.Login400JSONResponse(servers.BadRequest{
+		return openapi.Login400JSONResponse(openapi.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,
@@ -28,7 +28,7 @@ func ConvertToLoginResponse(err error) servers.LoginResponseObject {
 
 	case isUserNotFoundError(err):
 		// Маскируем "user not found" как invalid credentials для безопасности
-		return servers.Login401JSONResponse(servers.Unauthorized{
+		return openapi.Login401JSONResponse(openapi.Unauthorized{
 			Type:   "unauthorized",
 			Title:  "Unauthorized",
 			Status: 401,
@@ -37,7 +37,7 @@ func ConvertToLoginResponse(err error) servers.LoginResponseObject {
 
 	default:
 		// Общая ошибка сервера
-		return servers.Login400JSONResponse(servers.BadRequest{
+		return openapi.Login400JSONResponse(openapi.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,
@@ -47,10 +47,10 @@ func ConvertToLoginResponse(err error) servers.LoginResponseObject {
 }
 
 // ConvertToRegisterResponse конвертирует доменные ошибки в OpenAPI RegisterResponseObject
-func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
+func ConvertToRegisterResponse(err error) openapi.RegisterResponseObject {
 	switch {
 	case isEmailAlreadyExistsError(err):
-		return servers.Register400JSONResponse(servers.BadRequest{
+		return openapi.Register400JSONResponse(openapi.BadRequest{
 			Type:   "conflict",
 			Title:  "Conflict",
 			Status: 400, // Note: OpenAPI schema uses 400 for all errors, not 409
@@ -58,7 +58,7 @@ func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 		})
 
 	case isPhoneAlreadyExistsError(err):
-		return servers.Register400JSONResponse(servers.BadRequest{
+		return openapi.Register400JSONResponse(openapi.BadRequest{
 			Type:   "conflict",
 			Title:  "Conflict",
 			Status: 400, // Note: OpenAPI schema uses 400 for all errors, not 409
@@ -66,7 +66,7 @@ func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 		})
 
 	case isValidationError(err):
-		return servers.Register400JSONResponse(servers.BadRequest{
+		return openapi.Register400JSONResponse(openapi.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,
@@ -75,7 +75,7 @@ func ConvertToRegisterResponse(err error) servers.RegisterResponseObject {
 
 	default:
 		// Общая ошибка сервера
-		return servers.Register400JSONResponse(servers.BadRequest{
+		return openapi.Register400JSONResponse(openapi.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,
