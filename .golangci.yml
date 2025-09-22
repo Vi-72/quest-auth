@@ -1,0 +1,98 @@
+run:
+  timeout: 5m
+  build-tags:
+    - integration
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+  
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  lll:
+    line-length: 120
+  
+  goimports:
+    local-prefixes: quest-auth
+
+linters:
+  enable:
+    - bodyclose
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - mnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+issues:
+  # Исключаем директории с проблемами
+  exclude-dirs:
+    - api/grpc/proto  # Исключаем директорию с .proto файлами
+    - github.com      # Исключаем внешние зависимости
+  
+  # Исключаем файлы с проблемами
+  exclude-files:
+    - ".*\\.pb\\.go$"     # Исключаем сгенерированные protobuf файлы
+    - ".*\\.gen\\.go$"    # Исключаем другие сгенерированные файлы
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - mnd
+        - funlen
+        - goconst
+        - gocyclo
+    
+    - path: ".*\\.pb\\.go"
+      linters:
+        - all
+    
+    - path: ".*\\.gen\\.go"  
+      linters:
+        - all
+    
+    - path: cmd/
+      linters:
+        - gochecknoinits
+  
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
