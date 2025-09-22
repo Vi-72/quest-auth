@@ -79,6 +79,11 @@ issues:
         - funlen
         - goconst
         - gocyclo
+        - lll
+        - stylecheck
+        - goimports
+        - gosec
+        - gochecknoinits
     
     - path: ".*\\.pb\\.go"
       linters:
@@ -90,6 +95,19 @@ issues:
     
     - path: cmd/
       linters:
+        - gochecknoinits
+    
+    # Исключения для тестовых файлов и директорий
+    - path: tests/
+      linters:
+        - mnd
+        - funlen
+        - goconst
+        - gocyclo
+        - lll
+        - stylecheck
+        - goimports
+        - gosec
         - gochecknoinits
     
     # Исключения для конкретных функций, которые могут быть длинными

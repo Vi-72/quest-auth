@@ -5,7 +5,8 @@ package auth_handler_tests
 
 import (
 	"context"
-	authpb "quest-auth/api/grpc/proto"
+
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 
 	grpcin "quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/core/application/usecases/queries"
@@ -61,7 +62,7 @@ func (s *Suite) TestAuthenticateHandler_Validation_EmptyToken() {
 	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
 	handler := grpcin.NewAuthHandler(authByToken)
 	// Act
-	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: "   "})
+	resp, err := handler.Authenticate(ctx, &authv1.AuthenticateRequest{JwtToken: "   "})
 	// Assert
 	s.Require().Error(err)
 	s.Nil(resp)
