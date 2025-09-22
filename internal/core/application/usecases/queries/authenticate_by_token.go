@@ -31,7 +31,10 @@ func NewAuthenticateByTokenHandler(jwt ports.JWTService) *AuthenticateByTokenHan
 	return &AuthenticateByTokenHandler{jwt: jwt}
 }
 
-func (h *AuthenticateByTokenHandler) Handle(ctx context.Context, q AuthenticateByTokenQuery) (AuthenticatedInfo, error) {
+func (h *AuthenticateByTokenHandler) Handle(
+	ctx context.Context,
+	q AuthenticateByTokenQuery,
+) (AuthenticatedInfo, error) {
 	// Создаём доменную модель токена (валидирует пустые значения и пробелы)
 	token, err := kernel.NewJwtToken(q.RawToken)
 	if err != nil {

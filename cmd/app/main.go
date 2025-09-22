@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -18,41 +19,52 @@ func main() {
 	configs := getConfigs()
 
 	connectionString, err := cmd.MakeConnectionString(
-		configs.DbHost,
-		configs.DbPort,
-		configs.DbUser,
-		configs.DbPassword,
-		configs.DbName,
-		configs.DbSslMode)
+		configs.DBHost,
+		configs.DBPort,
+		configs.DBUser,
+		configs.DBPassword,
+		configs.DBName,
+		configs.DBSslMode)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	cmd.CreateDbIfNotExists(configs.DbHost,
-		configs.DbPort,
-		configs.DbUser,
-		configs.DbPassword,
-		configs.DbName,
-		configs.DbSslMode)
-	gormDb := cmd.MustGormOpen(connectionString)
-	cmd.MustAutoMigrate(gormDb)
+	cmd.CreateDBIfNotExists(configs.DBHost,
+		configs.DBPort,
+		configs.DBUser,
+		configs.DBPassword,
+		configs.DBName,
+		configs.DBSslMode)
+	gormDB := cmd.MustGormOpen(connectionString)
+	cmd.MustAutoMigrate(gormDB)
 
 	compositionRoot := cmd.NewCompositionRoot(
 		configs,
-		gormDb,
+		gormDB,
 	)
 	defer compositionRoot.CloseAll()
 
 	// Создаем WaitGroup для ожидания обоих серверов
+	const numServers = 2 // HTTP и gRPC серверы
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(numServers)
 
 	// Запускаем HTTP сервер в горутине
 	go func() {
 		defer wg.Done()
 		router := cmd.NewRouter(compositionRoot)
-		log.Printf("HTTP server running on :%s", configs.HttpPort)
-		err := http.ListenAndServe(":"+configs.HttpPort, router)
+		log.Printf("HTTP server running on :%s", configs.HTTPPort)
+
+		// Создаем HTTP сервер с таймаутами для безопасности
+		server := &http.Server{
+			Addr:         ":" + configs.HTTPPort,
+			Handler:      router,
+			ReadTimeout:  15 * time.Second,
+			WriteTimeout: 15 * time.Second,
+			IdleTimeout:  60 * time.Second,
+		}
+
+		err := server.ListenAndServe()
 		if err != nil {
 			log.Fatalf("failed to start HTTP server: %v", err)
 		}
@@ -74,14 +86,14 @@ func main() {
 
 func getConfigs() cmd.Config {
 	return cmd.Config{
-		HttpPort:                getEnv("HTTP_PORT"),
+		HTTPPort:                getEnv("HTTP_PORT"),
 		GrpcPort:                getEnv("GRPC_PORT"),
-		DbHost:                  getEnv("DB_HOST"),
-		DbPort:                  getEnv("DB_PORT"),
-		DbUser:                  getEnv("DB_USER"),
-		DbPassword:              getEnv("DB_PASSWORD"),
-		DbName:                  getEnv("DB_NAME"),
-		DbSslMode:               getEnv("DB_SSLMODE"),
+		DBHost:                  getEnv("DB_HOST"),
+		DBPort:                  getEnv("DB_PORT"),
+		DBUser:                  getEnv("DB_USER"),
+		DBPassword:              getEnv("DB_PASSWORD"),
+		DBName:                  getEnv("DB_NAME"),
+		DBSslMode:               getEnv("DB_SSLMODE"),
 		EventGoroutineLimit:     getEnvInt("EVENT_GOROUTINE_LIMIT"),
 		JWTSecretKey:            getEnv("JWT_SECRET_KEY"),
 		JWTAccessTokenDuration:  getEnvInt("JWT_ACCESS_TOKEN_DURATION"),

@@ -30,7 +30,10 @@ func NewAuthHandler(
 }
 
 // Authenticate проверяет JWT токен и возвращает информацию о пользователе
-func (h *AuthHandler) Authenticate(ctx context.Context, req *authv1.AuthenticateRequest) (*authv1.AuthenticateResponse, error) {
+func (h *AuthHandler) Authenticate(
+	ctx context.Context,
+	req *authv1.AuthenticateRequest,
+) (*authv1.AuthenticateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}

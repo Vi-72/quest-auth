@@ -2,7 +2,8 @@ package http
 
 import (
 	"context"
-	"quest-auth/api/http/auth/v1"
+
+	v1 "quest-auth/api/http/auth/v1"
 	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/httperrs"
@@ -10,7 +11,10 @@ import (
 )
 
 // Register implements POST /auth/register from OpenAPI.
-func (a *APIHandler) Register(ctx context.Context, request v1.RegisterRequestObject) (v1.RegisterResponseObject, error) {
+func (a *APIHandler) Register(
+	ctx context.Context,
+	request v1.RegisterRequestObject,
+) (v1.RegisterResponseObject, error) {
 	// Validate register request body (includes nil check)
 	validatedData, validationErr := validations.ValidateRegisterUserRequestBody(request.Body)
 	if validationErr != nil {

@@ -89,7 +89,13 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 	}
 
 	// Генерация токенов
-	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID(), user.Email.String(), user.Name, user.Phone.String(), user.CreatedAt)
+	tokenPair, err := h.jwtService.GenerateTokenPair(
+		user.ID(),
+		user.Email.String(),
+		user.Name,
+		user.Phone.String(),
+		user.CreatedAt,
+	)
 	if err != nil {
 		return RegisterUserResult{}, err
 	}

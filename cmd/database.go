@@ -25,7 +25,7 @@ func MustConnectDB(databaseURL string) (*gorm.DB, *sql.DB, error) {
 	return db, sqlDB, nil
 }
 
-func CreateDbIfNotExists(host string, port string, user string,
+func CreateDBIfNotExists(host string, port string, user string,
 	password string, dbName string, sslMode string) {
 	dsn, err := MakeConnectionString(host, port, user, password, "postgres", sslMode)
 	if err != nil {

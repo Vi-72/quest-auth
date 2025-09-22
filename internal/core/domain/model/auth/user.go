@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	MinPasswordLength = 8 // Минимальная длина пароля
+)
+
 var (
 	ErrNameEmpty        = errors.New("name must not be empty")
 	ErrPasswordTooShort = errors.New("password must be at least 8 characters")
@@ -41,11 +45,18 @@ type User struct {
 
 // NewUser — регистрация пользователя (создание аккаунта).
 // Сразу валидирует email/phone/name и хеширует пароль.
-func NewUser(email kernel.Email, phone kernel.Phone, name string, rawPassword string, hasher PasswordHasher, clock Clock) (User, error) {
+func NewUser(
+	email kernel.Email,
+	phone kernel.Phone,
+	name string,
+	rawPassword string,
+	hasher PasswordHasher,
+	clock Clock,
+) (User, error) {
 	if name = normalizeName(name); name == "" {
 		return User{}, ErrNameEmpty
 	}
-	if len(rawPassword) < 8 {
+	if len(rawPassword) < MinPasswordLength {
 		return User{}, ErrPasswordTooShort
 	}
 
@@ -99,7 +110,7 @@ func (u *User) ChangeName(newName string, clock Clock) error {
 
 // SetPassword — смена пароля (с валидацией и перезаписью хеша).
 func (u *User) SetPassword(rawPassword string, hasher PasswordHasher, clock Clock) error {
-	if len(rawPassword) < 8 {
+	if len(rawPassword) < MinPasswordLength {
 		return ErrPasswordTooShort
 	}
 	hash, err := hasher.Hash(rawPassword)

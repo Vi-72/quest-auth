@@ -2,8 +2,9 @@ package validations
 
 import (
 	"fmt"
-	"quest-auth/api/http/auth/v1"
 	"strings"
+
+	v1 "quest-auth/api/http/auth/v1"
 )
 
 // RegisterUserRequest — запрос на регистрацию пользователя
