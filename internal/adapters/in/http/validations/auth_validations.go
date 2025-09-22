@@ -2,6 +2,7 @@ package validations
 
 import (
 	"fmt"
+	"quest-auth/api/http"
 	"strings"
 )
 

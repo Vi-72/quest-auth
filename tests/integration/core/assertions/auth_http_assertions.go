@@ -2,9 +2,11 @@ package assertions
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
-	"net/http"
+	stdhttp "net/http"
 
+	"github.com/stretchr/testify/assert"
+
+	"quest-auth/api/http"
 	casesteps "quest-auth/tests/integration/core/case_steps"
 )
 
@@ -19,7 +21,7 @@ func NewAuthHTTPAssertions(a *assert.Assertions) *AuthHTTPAssertions {
 // RegisterHTTPCreatedSuccessfully verifies Register HTTP 201 response and parses it
 func (a *AuthHTTPAssertions) RegisterHTTPCreatedSuccessfully(resp *casesteps.HTTPResponse, err error) http.RegisterResponse {
 	a.assert.NoError(err)
-	a.assert.Equal(http.StatusCreated, resp.StatusCode)
+	a.assert.Equal(stdhttp.StatusCreated, resp.StatusCode)
 	var r http.RegisterResponse
 	a.assert.NoError(json.Unmarshal([]byte(resp.Body), &r))
 	a.assert.NotEmpty(r.User.Id)
@@ -33,7 +35,7 @@ func (a *AuthHTTPAssertions) RegisterHTTPCreatedSuccessfully(resp *casesteps.HTT
 // LoginHTTPSuccess verifies Login HTTP 200 response and parses it
 func (a *AuthHTTPAssertions) LoginHTTPSuccess(resp *casesteps.HTTPResponse, err error) http.LoginResponse {
 	a.assert.NoError(err)
-	a.assert.Equal(http.StatusOK, resp.StatusCode)
+	a.assert.Equal(stdhttp.StatusOK, resp.StatusCode)
 	var r http.LoginResponse
 	a.assert.NoError(json.Unmarshal([]byte(resp.Body), &r))
 	a.assert.NotEmpty(r.User.Id)

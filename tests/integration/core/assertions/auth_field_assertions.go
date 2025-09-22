@@ -1,6 +1,7 @@
 package assertions
 
 import (
+	"quest-auth/api/http"
 	"strings"
 
 	"github.com/stretchr/testify/assert"

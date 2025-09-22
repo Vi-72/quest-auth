@@ -2,19 +2,20 @@ package cmd
 
 import (
 	"errors"
-	"net/http"
+	stdhttp "net/http"
 	"quest-auth/internal/adapters/in/http/validations"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware" // ← добавлено
 
+	openapihttp "quest-auth/api/http"
 	"quest-auth/internal/adapters/in/http/problems"
 	"quest-auth/internal/pkg/errs"
 )
 
 const apiV1Prefix = "/api/v1"
 
-func NewRouter(root *CompositionRoot) http.Handler {
+func NewRouter(root *CompositionRoot) stdhttp.Handler {
 	router := chi.NewRouter()
 
 	// --- Базовые middleware ---
@@ -23,33 +24,33 @@ func NewRouter(root *CompositionRoot) http.Handler {
 	router.Use(middleware.Logger)
 
 	// --- Health check ---
-	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/health", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(stdhttp.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 
 	// Swagger JSON
-	router.Get("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		spec, err := http.GetSwagger()
+	router.Get("/openapi.json", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+		spec, err := openapihttp.GetSwagger()
 		if err != nil {
-			http.Error(w, "failed to load OpenAPI spec: "+err.Error(), http.StatusInternalServerError)
+			stdhttp.Error(w, "failed to load OpenAPI spec: "+err.Error(), stdhttp.StatusInternalServerError)
 			return
 		}
 		bytes, err := spec.MarshalJSON()
 		if err != nil {
-			http.Error(w, "failed to marshal OpenAPI: "+err.Error(), http.StatusInternalServerError)
+			stdhttp.Error(w, "failed to marshal OpenAPI: "+err.Error(), stdhttp.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(stdhttp.StatusOK)
 		_, _ = w.Write(bytes)
 	})
 
 	// Swagger UI
-	router.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/docs", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(stdhttp.StatusOK)
 		_, _ = w.Write([]byte(`
 			<!DOCTYPE html>
 			<html lang="en">
@@ -77,13 +78,13 @@ func NewRouter(root *CompositionRoot) http.Handler {
 	strictHandler := root.NewAPIHandler()
 
 	// Create StrictHandler with custom error handling for parameter parsing and validation
-	apiHandler := http.NewStrictHandlerWithOptions(strictHandler, nil, http.StrictHTTPServerOptions{
-		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+	apiHandler := openapihttp.NewStrictHandlerWithOptions(strictHandler, nil, openapihttp.StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
 			// Handle parameter parsing errors with detailed messages
 			problem := problems.NewBadRequest("Invalid request parameters: " + err.Error())
 			problem.WriteResponse(w)
 		},
-		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+		ResponseErrorHandlerFunc: func(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
 			// Check if it's a validation error from our pkg/validations
 			var validationErr *validations.ValidationError
 			if errors.As(err, &validationErr) {
@@ -117,7 +118,7 @@ func NewRouter(root *CompositionRoot) http.Handler {
 		},
 	})
 
-	apiRouter := http.HandlerFromMuxWithBaseURL(apiHandler, router, apiV1Prefix)
+	apiRouter := openapihttp.HandlerFromMuxWithBaseURL(apiHandler, router, apiV1Prefix)
 
 	return apiRouter
 }

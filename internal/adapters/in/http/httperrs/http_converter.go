@@ -2,7 +2,8 @@ package httperrs
 
 import (
 	"errors"
-	"net/http"
+	stdhttp "net/http"
+	"quest-auth/api/http"
 	"quest-auth/internal/pkg/errs"
 )
 
@@ -27,7 +28,7 @@ func ToHTTP(err error) HTTPError {
 			Title:      "Internal Server Error",
 			Status:     500,
 			Detail:     "An unexpected error occurred",
-			StatusCode: http.StatusInternalServerError,
+			StatusCode: stdhttp.StatusInternalServerError,
 		}
 	}
 
@@ -42,7 +43,7 @@ func ToHTTP(err error) HTTPError {
 					Title:      "Conflict",
 					Status:     409,
 					Detail:     "Email already exists",
-					StatusCode: http.StatusConflict,
+					StatusCode: stdhttp.StatusConflict,
 				}
 			}
 			return HTTPError{
@@ -50,7 +51,7 @@ func ToHTTP(err error) HTTPError {
 				Title:      "Bad Request",
 				Status:     400,
 				Detail:     domainValidationErr.Error(),
-				StatusCode: http.StatusBadRequest,
+				StatusCode: stdhttp.StatusBadRequest,
 			}
 		case "phone":
 			if domainValidationErr.Message == "phone already exists" {
@@ -59,7 +60,7 @@ func ToHTTP(err error) HTTPError {
 					Title:      "Conflict",
 					Status:     409,
 					Detail:     "Phone number already exists",
-					StatusCode: http.StatusConflict,
+					StatusCode: stdhttp.StatusConflict,
 				}
 			}
 			return HTTPError{
@@ -67,7 +68,7 @@ func ToHTTP(err error) HTTPError {
 				Title:      "Bad Request",
 				Status:     400,
 				Detail:     domainValidationErr.Error(),
-				StatusCode: http.StatusBadRequest,
+				StatusCode: stdhttp.StatusBadRequest,
 			}
 		case "credentials":
 			return HTTPError{
@@ -75,7 +76,7 @@ func ToHTTP(err error) HTTPError {
 				Title:      "Unauthorized",
 				Status:     401,
 				Detail:     "Invalid credentials",
-				StatusCode: http.StatusUnauthorized,
+				StatusCode: stdhttp.StatusUnauthorized,
 			}
 		default:
 			return HTTPError{
@@ -83,7 +84,7 @@ func ToHTTP(err error) HTTPError {
 				Title:      "Bad Request",
 				Status:     400,
 				Detail:     domainValidationErr.Error(),
-				StatusCode: http.StatusBadRequest,
+				StatusCode: stdhttp.StatusBadRequest,
 			}
 		}
 	}
@@ -96,7 +97,7 @@ func ToHTTP(err error) HTTPError {
 			Title:      "Not Found",
 			Status:     404,
 			Detail:     notFoundErr.Error(),
-			StatusCode: http.StatusNotFound,
+			StatusCode: stdhttp.StatusNotFound,
 		}
 	}
 
@@ -118,7 +119,7 @@ func ToHTTP(err error) HTTPError {
 		Title:      "Internal Server Error",
 		Status:     500,
 		Detail:     "An unexpected error occurred",
-		StatusCode: http.StatusInternalServerError,
+		StatusCode: stdhttp.StatusInternalServerError,
 	}
 }
 
@@ -127,9 +128,9 @@ func ToRegisterResponse(err error) http.RegisterResponseObject {
 	httpErr := ToHTTP(err)
 
 	// OpenAPI schema only supports 400 and 500 for register endpoint
-	if httpErr.StatusCode == http.StatusConflict {
+	if httpErr.StatusCode == stdhttp.StatusConflict {
 		httpErr.Status = 400
-		httpErr.StatusCode = http.StatusBadRequest
+		httpErr.StatusCode = stdhttp.StatusBadRequest
 	}
 
 	return http.Register400JSONResponse(http.BadRequest{
@@ -145,14 +146,14 @@ func ToLoginResponse(err error) http.LoginResponseObject {
 	httpErr := ToHTTP(err)
 
 	switch httpErr.StatusCode {
-	case http.StatusUnauthorized:
+	case stdhttp.StatusUnauthorized:
 		return http.Login401JSONResponse(http.Unauthorized{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
 			Detail: httpErr.Detail,
 		})
-	case http.StatusBadRequest:
+	case stdhttp.StatusBadRequest:
 		return http.Login400JSONResponse(http.BadRequest{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
@@ -173,15 +174,15 @@ func ToLoginResponse(err error) http.LoginResponseObject {
 // Helper functions
 func getTypeFromStatus(status int) string {
 	switch status {
-	case http.StatusBadRequest:
+	case stdhttp.StatusBadRequest:
 		return "bad-request"
-	case http.StatusUnauthorized:
+	case stdhttp.StatusUnauthorized:
 		return "unauthorized"
-	case http.StatusNotFound:
+	case stdhttp.StatusNotFound:
 		return "not-found"
-	case http.StatusConflict:
+	case stdhttp.StatusConflict:
 		return "conflict"
-	case http.StatusInternalServerError:
+	case stdhttp.StatusInternalServerError:
 		return "internal-server-error"
 	default:
 		return "error"
@@ -190,15 +191,15 @@ func getTypeFromStatus(status int) string {
 
 func getTitleFromStatus(status int) string {
 	switch status {
-	case http.StatusBadRequest:
+	case stdhttp.StatusBadRequest:
 		return "Bad Request"
-	case http.StatusUnauthorized:
+	case stdhttp.StatusUnauthorized:
 		return "Unauthorized"
-	case http.StatusNotFound:
+	case stdhttp.StatusNotFound:
 		return "Not Found"
-	case http.StatusConflict:
+	case stdhttp.StatusConflict:
 		return "Conflict"
-	case http.StatusInternalServerError:
+	case stdhttp.StatusInternalServerError:
 		return "Internal Server Error"
 	default:
 		return "Error"

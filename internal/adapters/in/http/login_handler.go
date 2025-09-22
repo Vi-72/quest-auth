@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"quest-auth/api/http"
 	"quest-auth/internal/core/application/usecases/commands"
 
 	"quest-auth/internal/adapters/in/http/httperrs"
