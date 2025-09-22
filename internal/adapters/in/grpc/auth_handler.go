@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"github.com/Vi-72/quest-auth/api/grpc/sdk/go/go/proto/auth/v1"
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 	"strings"
 
 	"quest-auth/internal/core/application/usecases/queries"
@@ -15,7 +15,7 @@ import (
 
 // AuthHandler реализует gRPC сервис аутентификации
 type AuthHandler struct {
-	v1.UnimplementedAuthServiceServer
+	authv1.UnimplementedAuthServiceServer
 	authenticateByToken *queries.AuthenticateByTokenHandler
 }
 
@@ -29,7 +29,7 @@ func NewAuthHandler(
 }
 
 // Authenticate проверяет JWT токен и возвращает информацию о пользователе
-func (h *AuthHandler) Authenticate(ctx context.Context, req *v1.AuthenticateRequest) (*v1.AuthenticateResponse, error) {
+func (h *AuthHandler) Authenticate(ctx context.Context, req *authv1.AuthenticateRequest) (*authv1.AuthenticateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
 	}
@@ -44,8 +44,8 @@ func (h *AuthHandler) Authenticate(ctx context.Context, req *v1.AuthenticateRequ
 	}
 
 	// Формируем ответ из данных клеймов
-	response := &v1.AuthenticateResponse{
-		User: &v1.User{
+	response := &authv1.AuthenticateResponse{
+		User: &authv1.User{
 			Id:        info.ID.String(),
 			Name:      info.Name,
 			Email:     info.Email,
