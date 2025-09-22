@@ -3,8 +3,6 @@ package cmd
 import (
 	"errors"
 	"net/http"
-	"quest-auth/api/openapi"
-
 	"quest-auth/internal/adapters/in/http/validations"
 
 	"github.com/go-chi/chi/v5"
@@ -33,7 +31,7 @@ func NewRouter(root *CompositionRoot) http.Handler {
 
 	// Swagger JSON
 	router.Get("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		spec, err := openapi.GetSwagger()
+		spec, err := http.GetSwagger()
 		if err != nil {
 			http.Error(w, "failed to load OpenAPI spec: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -79,7 +77,7 @@ func NewRouter(root *CompositionRoot) http.Handler {
 	strictHandler := root.NewAPIHandler()
 
 	// Create StrictHandler with custom error handling for parameter parsing and validation
-	apiHandler := openapi.NewStrictHandlerWithOptions(strictHandler, nil, openapi.StrictHTTPServerOptions{
+	apiHandler := http.NewStrictHandlerWithOptions(strictHandler, nil, http.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			// Handle parameter parsing errors with detailed messages
 			problem := problems.NewBadRequest("Invalid request parameters: " + err.Error())
@@ -119,7 +117,7 @@ func NewRouter(root *CompositionRoot) http.Handler {
 		},
 	})
 
-	apiRouter := openapi.HandlerFromMuxWithBaseURL(apiHandler, router, apiV1Prefix)
+	apiRouter := http.HandlerFromMuxWithBaseURL(apiHandler, router, apiV1Prefix)
 
 	return apiRouter
 }

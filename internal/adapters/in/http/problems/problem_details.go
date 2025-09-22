@@ -39,42 +39,12 @@ func NewBadRequest(detail string) *ProblemDetails {
 	}
 }
 
-// NewUnauthorized creates a 401 Unauthorized problem
-func NewUnauthorized(detail string) *ProblemDetails {
-	return &ProblemDetails{
-		Type:   "unauthorized",
-		Title:  "Unauthorized",
-		Status: http.StatusUnauthorized,
-		Detail: detail,
-	}
-}
-
 // NewNotFound creates a 404 Not Found problem
 func NewNotFound(detail string) *ProblemDetails {
 	return &ProblemDetails{
 		Type:   "not-found",
 		Title:  "Not Found",
 		Status: http.StatusNotFound,
-		Detail: detail,
-	}
-}
-
-// NewConflict creates a 409 Conflict problem
-func NewConflict(detail string) *ProblemDetails {
-	return &ProblemDetails{
-		Type:   "conflict",
-		Title:  "Conflict",
-		Status: http.StatusConflict,
-		Detail: detail,
-	}
-}
-
-// NewInternalServerError creates a 500 Internal Server Error problem
-func NewInternalServerError(detail string) *ProblemDetails {
-	return &ProblemDetails{
-		Type:   "internal-error",
-		Title:  "Internal Server Error",
-		Status: http.StatusInternalServerError,
 		Detail: detail,
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"quest-auth/api/openapi"
 	"strconv"
 	"time"
 
@@ -67,8 +66,8 @@ func (u UserTestData) ToRegisterHTTPRequest() map[string]any {
 	}
 }
 
-func (u UserTestData) ToRegisterRequest() openapi.RegisterRequest {
-	return openapi.RegisterRequest{
+func (u UserTestData) ToRegisterRequest() http.RegisterRequest {
+	return http.RegisterRequest{
 		Email:    openapi_types.Email(u.Email),
 		Phone:    u.Phone,
 		Name:     u.Name,
@@ -83,8 +82,8 @@ func (u UserTestData) ToLoginHTTPRequest() map[string]any {
 	}
 }
 
-func (u UserTestData) ToLoginRequest() openapi.LoginRequest {
-	return openapi.LoginRequest{
+func (u UserTestData) ToLoginRequest() http.LoginRequest {
+	return http.LoginRequest{
 		Email:    openapi_types.Email(u.Email),
 		Password: u.Password,
 	}

@@ -5,8 +5,8 @@ package auth_handler_tests
 
 import (
 	"context"
+	authpb "quest-auth/api/grpc/proto"
 
-	authpb "quest-auth/api/proto"
 	grpcin "quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/core/application/usecases/queries"
 	casesteps "quest-auth/tests/integration/core/case_steps"

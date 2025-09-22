@@ -1,12 +1,11 @@
 package grpc
 
 import (
-	"log"
-	"net"
-	authpb "quest-auth/api/proto"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"log"
+	"net"
+	authpb "quest-auth/api/grpc/proto"
 )
 
 // StartServer запускает gRPC сервер

@@ -3,9 +3,7 @@ package httperrs
 import (
 	"errors"
 	"net/http"
-	"quest-auth/api/openapi"
-
-	errs "quest-auth/internal/pkg/errs"
+	"quest-auth/internal/pkg/errs"
 )
 
 // HTTPError represents a structured HTTP error response
@@ -125,7 +123,7 @@ func ToHTTP(err error) HTTPError {
 }
 
 // ToRegisterResponse converts error to Register strict response wrapper
-func ToRegisterResponse(err error) openapi.RegisterResponseObject {
+func ToRegisterResponse(err error) http.RegisterResponseObject {
 	httpErr := ToHTTP(err)
 
 	// OpenAPI schema only supports 400 and 500 for register endpoint
@@ -134,7 +132,7 @@ func ToRegisterResponse(err error) openapi.RegisterResponseObject {
 		httpErr.StatusCode = http.StatusBadRequest
 	}
 
-	return openapi.Register400JSONResponse(openapi.BadRequest{
+	return http.Register400JSONResponse(http.BadRequest{
 		Type:   httpErr.Type,
 		Title:  httpErr.Title,
 		Status: httpErr.Status,
@@ -143,19 +141,19 @@ func ToRegisterResponse(err error) openapi.RegisterResponseObject {
 }
 
 // ToLoginResponse converts error to Login strict response wrapper
-func ToLoginResponse(err error) openapi.LoginResponseObject {
+func ToLoginResponse(err error) http.LoginResponseObject {
 	httpErr := ToHTTP(err)
 
 	switch httpErr.StatusCode {
 	case http.StatusUnauthorized:
-		return openapi.Login401JSONResponse(openapi.Unauthorized{
+		return http.Login401JSONResponse(http.Unauthorized{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
 			Detail: httpErr.Detail,
 		})
 	case http.StatusBadRequest:
-		return openapi.Login400JSONResponse(openapi.BadRequest{
+		return http.Login400JSONResponse(http.BadRequest{
 			Type:   httpErr.Type,
 			Title:  httpErr.Title,
 			Status: httpErr.Status,
@@ -163,7 +161,7 @@ func ToLoginResponse(err error) openapi.LoginResponseObject {
 		})
 	default:
 		// Default to bad request for other errors
-		return openapi.Login400JSONResponse(openapi.BadRequest{
+		return http.Login400JSONResponse(http.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
 			Status: 400,

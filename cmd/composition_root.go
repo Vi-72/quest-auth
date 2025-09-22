@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"log"
-	"quest-auth/api/openapi"
 	"time"
 
 	"gorm.io/gorm"
@@ -105,7 +104,7 @@ func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
 // HTTP Handlers
 
 // NewAPIHandler creates OpenAPI handler
-func (cr *CompositionRoot) NewAPIHandler() openapi.StrictServerInterface {
+func (cr *CompositionRoot) NewAPIHandler() http.StrictServerInterface {
 	handlers, err := http.NewAPIHandler(
 		cr.NewRegisterUserHandler(),
 		cr.NewLoginUserHandler(),
