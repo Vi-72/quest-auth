@@ -21,14 +21,14 @@ import (
 // getTestConfig возвращает конфигурацию для тестов, используя те же env переменные что и приложение
 func getTestConfig() cmd.Config {
 	return cmd.Config{
-		HttpPort:                getTestEnv("HTTP_PORT", "8080"),
+		HTTPPort:                getTestEnv("HTTP_PORT", "8080"),
 		GrpcPort:                getTestEnv("GRPC_PORT", "9090"),
-		DbHost:                  getTestEnv("DB_HOST", "localhost"),
-		DbPort:                  getTestEnv("DB_PORT", "5433"),
-		DbUser:                  getTestEnv("DB_USER", "postgres"),
-		DbPassword:              getTestEnv("DB_PASSWORD", "password"),
-		DbName:                  getTestEnv("DB_NAME", "auth_test"),
-		DbSslMode:               getTestEnv("DB_SSLMODE", "disable"),
+		DBHost:                  getTestEnv("DB_HOST", "localhost"),
+		DBPort:                  getTestEnv("DB_PORT", "5433"),
+		DBUser:                  getTestEnv("DB_USER", "postgres"),
+		DBPassword:              getTestEnv("DB_PASSWORD", "password"),
+		DBName:                  getTestEnv("DB_NAME", "auth_test"),
+		DBSslMode:               getTestEnv("DB_SSLMODE", "disable"),
 		EventGoroutineLimit:     10,
 		JWTSecretKey:            getTestEnv("JWT_SECRET_KEY", "test-secret-key-for-testing-only"),
 		JWTAccessTokenDuration:  1,  // 1 minute for tests
@@ -73,23 +73,23 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 	testConfig := getTestConfig()
 
 	// Создаем базу данных если ее нет (для локальной разработки и CI)
-	cmd.CreateDbIfNotExists(
-		testConfig.DbHost,
-		testConfig.DbPort,
-		testConfig.DbUser,
-		testConfig.DbPassword,
-		testConfig.DbName,
-		testConfig.DbSslMode,
+	cmd.CreateDBIfNotExists(
+		testConfig.DBHost,
+		testConfig.DBPort,
+		testConfig.DBUser,
+		testConfig.DBPassword,
+		testConfig.DBName,
+		testConfig.DBSslMode,
 	)
 
 	// Формируем connection string используя ту же функцию что и в приложении
 	databaseURL, err := cmd.MakeConnectionString(
-		testConfig.DbHost,
-		testConfig.DbPort,
-		testConfig.DbUser,
-		testConfig.DbPassword,
-		testConfig.DbName,
-		testConfig.DbSslMode,
+		testConfig.DBHost,
+		testConfig.DBPort,
+		testConfig.DBUser,
+		testConfig.DBPassword,
+		testConfig.DBName,
+		testConfig.DBSslMode,
 	)
 	suiteContainer.Require().NoError(err, "Failed to create database connection string")
 
