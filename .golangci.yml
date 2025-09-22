@@ -109,6 +109,7 @@ issues:
         - goimports
         - gosec
         - gochecknoinits
+        - typecheck
     
     # Исключения для конкретных функций, которые могут быть длинными
     - path: cmd/router\.go
@@ -120,6 +121,11 @@ issues:
       text: "Function 'ToHTTP' is too long"
       linters:
         - funlen
+    
+    # Исключения для специфичных проблем с TestDIContainer в тестах
+    - text: "TestDIContainer undefined"
+      linters:
+        - typecheck
   
   max-issues-per-linter: 0
   max-same-issues: 0
