@@ -36,9 +36,9 @@ func CreateDBIfNotExists(host string, port string, user string,
 		log.Fatalf("Ошибка подключения к PostgreSQL: %v", err)
 	}
 	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Println("Ошибка закрытия соединения с БД:", err)
+		closeErr := db.Close()
+		if closeErr != nil {
+			log.Println("Ошибка закрытия соединения с БД:", closeErr)
 		}
 	}(db)
 
@@ -47,14 +47,16 @@ func CreateDBIfNotExists(host string, port string, user string,
 	checkQuery := `SELECT EXISTS(SELECT datname FROM pg_catalog.pg_database WHERE datname = $1)`
 	err = db.QueryRow(checkQuery, dbName).Scan(&exists)
 	if err != nil {
-		log.Fatalf("Ошибка проверки существования БД: %v", err)
+		log.Printf("Ошибка проверки существования БД: %v", err)
+		return // Используем return вместо log.Fatalf для корректной работы defer
 	}
 
 	// Создаём БД только если её нет
 	if !exists {
 		_, err = db.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, dbName))
 		if err != nil {
-			log.Fatalf("Ошибка создания БД: %v", err)
+			log.Printf("Ошибка создания БД: %v", err)
+			return // Используем return вместо log.Fatalf
 		}
 		log.Printf("База данных '%s' создана", dbName)
 	}

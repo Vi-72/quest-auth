@@ -56,12 +56,17 @@ func main() {
 		log.Printf("HTTP server running on :%s", configs.HTTPPort)
 
 		// Создаем HTTP сервер с таймаутами для безопасности
+		const (
+			readTimeout  = 15 * time.Second
+			writeTimeout = 15 * time.Second
+			idleTimeout  = 60 * time.Second
+		)
 		server := &http.Server{
 			Addr:         ":" + configs.HTTPPort,
 			Handler:      router,
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 15 * time.Second,
-			IdleTimeout:  60 * time.Second,
+			ReadTimeout:  readTimeout,
+			WriteTimeout: writeTimeout,
+			IdleTimeout:  idleTimeout,
 		}
 
 		err := server.ListenAndServe()

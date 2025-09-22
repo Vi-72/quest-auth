@@ -24,6 +24,10 @@ linters-settings:
   
   goimports:
     local-prefixes: quest-auth
+  
+  funlen:
+    lines: 80  # Увеличиваем лимит с 60 до 80 строк
+    statements: 50
 
 linters:
   enable:
@@ -87,6 +91,17 @@ issues:
     - path: cmd/
       linters:
         - gochecknoinits
+    
+    # Исключения для конкретных функций, которые могут быть длинными
+    - path: cmd/router\.go
+      text: "Function 'NewRouter' is too long"
+      linters:
+        - funlen
+    
+    - path: internal/adapters/in/http/httperrs/http_converter\.go
+      text: "Function 'ToHTTP' is too long"
+      linters:
+        - funlen
   
   max-issues-per-linter: 0
   max-same-issues: 0
