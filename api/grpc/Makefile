@@ -12,13 +12,11 @@ clean:
 	$(info clearing sdk directory...)
 	@rm -rf sdk
 
+BUF := $(shell go env GOPATH)/bin/buf
+
 .PHONY: generate
 generate:
 	$(info generating go files from proto files...)
-	PATH="$(shell go env GOPATH)/bin:$$PATH" buf generate
-	@if [ ! -f ./sdk/go/go.mod ]; then \
-	  (cd ./sdk/go && go mod init $(MODULE_NAME)); \
-	fi
-	@cd ./sdk/go && GOPROXY=https://proxy.golang.org,direct go mod tidy
-
+	@PATH="$(shell go env GOPATH)/bin:$$PATH" $(BUF) generate proto
+	@cd ./sdk/go && go mod tidy
 
