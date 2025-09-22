@@ -1,12 +1,10 @@
 package grpc
 
 import (
-	"log"
-	"net"
-	authv1 "quest-auth/api/grpc/proto/auth/v1"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"log"
+	"net"
 )
 
 // StartServer запускает gRPC сервер
@@ -21,7 +19,7 @@ func StartServer(port string, authHandler *AuthHandler) error {
 	grpcServer := grpc.NewServer()
 
 	// Регистрируем сервис аутентификации
-	authv1.RegisterAuthServiceServer(grpcServer, authHandler)
+	v1.RegisterAuthServiceServer(grpcServer, authHandler)
 
 	// Включаем reflection для удобства отладки
 	reflection.Register(grpcServer)

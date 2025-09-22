@@ -2,8 +2,6 @@ package auth_grpc_tests
 
 import (
 	"context"
-	authpb "quest-auth/api/grpc/proto/auth/v1"
-
 	grpcin "quest-auth/internal/adapters/in/grpc"
 	"quest-auth/internal/core/application/usecases/queries"
 	casesteps "quest-auth/tests/integration/core/case_steps"
@@ -25,7 +23,7 @@ func (s *Suite) TestAuthenticateThroughGRPC_RandomUser() {
 	// 2) Build gRPC auth handler and call Authenticate (real gRPC server method)
 	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
 	handler := grpcin.NewAuthHandler(authByToken)
-	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: reg.AccessToken})
+	resp, err := handler.Authenticate(ctx, &v1.AuthenticateRequest{JwtToken: reg.AccessToken})
 	s.Require().NoError(err)
 	s.Require().NotNil(resp)
 	s.Require().NotNil(resp.User)
@@ -55,7 +53,7 @@ func (s *Suite) TestAuthenticateThroughGRPC_EmptyToken() {
 	ctx := context.Background()
 	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
 	handler := grpcin.NewAuthHandler(authByToken)
-	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: "   "})
+	resp, err := handler.Authenticate(ctx, &v1.AuthenticateRequest{JwtToken: "   "})
 	s.Require().Error(err)
 	s.Nil(resp)
 	st, ok := status.FromError(err)
@@ -69,7 +67,7 @@ func (s *Suite) TestAuthenticateThroughGRPC_InvalidToken_DomainError() {
 	authByToken := queries.NewAuthenticateByTokenHandler(s.TestDIContainer.JWTService)
 	handler := grpcin.NewAuthHandler(authByToken)
 	// malformed/invalid JWT (non-empty) to bypass handler empty-check and trigger lower-layer validation
-	resp, err := handler.Authenticate(ctx, &authpb.AuthenticateRequest{JwtToken: "invalid.jwt.token"})
+	resp, err := handler.Authenticate(ctx, &v1.AuthenticateRequest{JwtToken: "invalid.jwt.token"})
 	s.Require().Error(err)
 	s.Nil(resp)
 	st, ok := status.FromError(err)
