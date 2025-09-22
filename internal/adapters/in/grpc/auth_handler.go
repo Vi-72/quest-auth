@@ -2,8 +2,9 @@ package grpc
 
 import (
 	"context"
-	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 	"strings"
+
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 
 	"quest-auth/internal/core/application/usecases/queries"
 	"quest-auth/internal/pkg/errs"
