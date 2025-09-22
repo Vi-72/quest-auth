@@ -43,3 +43,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/Vi-72/quest-auth/api/grpc/sdk/go => ./api/grpc/sdk/go
