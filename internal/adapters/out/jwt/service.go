@@ -64,9 +64,12 @@ func (s *Service) GenerateTokenPair(userID uuid.UUID, email, name, phone string,
 
 	// Refresh token (PII не обязательно)
 	refreshClaims := &Claims{
-		UserID: userID,
-		Email:  email,
-		Type:   "refresh",
+		UserID:    userID,
+		Email:     email,
+		Name:      name,
+		Phone:     phone,
+		CreatedAt: createdAt.Unix(),
+		Type:      "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.refreshTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(now),
