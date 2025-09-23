@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"log"
-	openapihttp "quest-auth/api/http/auth/v1"
 	"time"
+
+	openapihttp "quest-auth/api/http/auth/v1"
 
 	"quest-auth/internal/adapters/in/grpc"
 	adapterhttp "quest-auth/internal/adapters/in/http"
@@ -95,12 +96,24 @@ func (cr *CompositionRoot) Clock() ports.Clock {
 
 // NewRegisterUserHandler creates a handler for user registration
 func (cr *CompositionRoot) NewRegisterUserHandler() *commands.RegisterUserHandler {
-	return commands.NewRegisterUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService(), cr.PasswordHasher(), cr.Clock())
+	return commands.NewRegisterUserHandler(
+		cr.GetUnitOfWork(),
+		cr.EventPublisher(),
+		cr.JWTService(),
+		cr.PasswordHasher(),
+		cr.Clock(),
+	)
 }
 
 // NewLoginUserHandler creates a handler for user login
 func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
-	return commands.NewLoginUserHandler(cr.GetUnitOfWork(), cr.EventPublisher(), cr.JWTService(), cr.PasswordHasher(), cr.Clock())
+	return commands.NewLoginUserHandler(
+		cr.GetUnitOfWork(),
+		cr.EventPublisher(),
+		cr.JWTService(),
+		cr.PasswordHasher(),
+		cr.Clock(),
+	)
 }
 
 // HTTP Handlers

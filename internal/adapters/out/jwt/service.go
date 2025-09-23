@@ -37,7 +37,11 @@ type Claims struct {
 }
 
 // GenerateTokenPair создает пару access и refresh токенов
-func (s *Service) GenerateTokenPair(userID uuid.UUID, email, name, phone string, createdAt time.Time) (*ports.TokenPair, error) {
+func (s *Service) GenerateTokenPair(
+	userID uuid.UUID,
+	email, name, phone string,
+	createdAt time.Time,
+) (*ports.TokenPair, error) {
 	now := time.Now()
 
 	// Access token

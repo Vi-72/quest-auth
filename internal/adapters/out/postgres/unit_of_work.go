@@ -26,14 +26,14 @@ func NewUnitOfWork(db *gorm.DB) (ports.UnitOfWork, error) {
 	uow := &UnitOfWork{db: db}
 
 	// Создаем user repository
-	userRepo := userrepo.NewRepository(uow.getDbInstance())
+	userRepo := userrepo.NewRepository(uow.getDBInstance())
 	uow.userRepository = userRepo
 
 	return uow, nil
 }
 
-// getDbInstance возвращает активное соединение с БД (транзакция или основное)
-func (u *UnitOfWork) getDbInstance() *gorm.DB {
+// getDBInstance возвращает активное соединение с БД (транзакция или основное)
+func (u *UnitOfWork) getDBInstance() *gorm.DB {
 	if u.tx != nil {
 		return u.tx
 	}
@@ -44,7 +44,7 @@ func (u *UnitOfWork) Tx() *gorm.DB {
 	return u.tx
 }
 
-func (u *UnitOfWork) Db() *gorm.DB {
+func (u *UnitOfWork) DB() *gorm.DB {
 	return u.db
 }
 

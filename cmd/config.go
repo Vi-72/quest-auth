@@ -1,14 +1,14 @@
 package cmd
 
 type Config struct {
-	HttpPort                string
+	HTTPPort                string
 	GrpcPort                string
-	DbHost                  string
-	DbPort                  string
-	DbUser                  string
-	DbPassword              string
-	DbName                  string
-	DbSslMode               string
+	DBHost                  string
+	DBPort                  string
+	DBUser                  string
+	DBPassword              string
+	DBName                  string
+	DBSslMode               string
 	EventGoroutineLimit     int
 	JWTSecretKey            string
 	JWTAccessTokenDuration  int // в минутах

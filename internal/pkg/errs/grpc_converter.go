@@ -1,8 +1,10 @@
 package errs
 
-import "errors"
+import (
+	"errors"
 
-import "google.golang.org/grpc/codes"
+	"google.golang.org/grpc/codes"
+)
 
 // ToGRPC converts any error to a gRPC status code.
 func ToGRPC(err error) codes.Code {

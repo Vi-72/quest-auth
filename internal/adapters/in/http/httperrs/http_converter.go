@@ -3,8 +3,18 @@ package httperrs
 import (
 	"errors"
 	stdhttp "net/http"
-	"quest-auth/api/http/auth/v1"
+
+	v1 "quest-auth/api/http/auth/v1"
 	"quest-auth/internal/pkg/errs"
+)
+
+// HTTP Status Code Constants
+const (
+	StatusBadRequest          = 400
+	StatusUnauthorized        = 401
+	StatusNotFound            = 404
+	StatusConflict            = 409
+	StatusInternalServerError = 500
 )
 
 // HTTPError represents a structured HTTP error response
@@ -26,7 +36,7 @@ func ToHTTP(err error) HTTPError {
 		return HTTPError{
 			Type:       "internal-server-error",
 			Title:      "Internal Server Error",
-			Status:     500,
+			Status:     StatusInternalServerError,
 			Detail:     "An unexpected error occurred",
 			StatusCode: stdhttp.StatusInternalServerError,
 		}
@@ -41,7 +51,7 @@ func ToHTTP(err error) HTTPError {
 				return HTTPError{
 					Type:       "conflict",
 					Title:      "Conflict",
-					Status:     409,
+					Status:     StatusConflict,
 					Detail:     "Email already exists",
 					StatusCode: stdhttp.StatusConflict,
 				}
@@ -49,7 +59,7 @@ func ToHTTP(err error) HTTPError {
 			return HTTPError{
 				Type:       "bad-request",
 				Title:      "Bad Request",
-				Status:     400,
+				Status:     StatusBadRequest,
 				Detail:     domainValidationErr.Error(),
 				StatusCode: stdhttp.StatusBadRequest,
 			}
@@ -58,7 +68,7 @@ func ToHTTP(err error) HTTPError {
 				return HTTPError{
 					Type:       "conflict",
 					Title:      "Conflict",
-					Status:     409,
+					Status:     StatusConflict,
 					Detail:     "Phone number already exists",
 					StatusCode: stdhttp.StatusConflict,
 				}
@@ -66,7 +76,7 @@ func ToHTTP(err error) HTTPError {
 			return HTTPError{
 				Type:       "bad-request",
 				Title:      "Bad Request",
-				Status:     400,
+				Status:     StatusBadRequest,
 				Detail:     domainValidationErr.Error(),
 				StatusCode: stdhttp.StatusBadRequest,
 			}
@@ -74,7 +84,7 @@ func ToHTTP(err error) HTTPError {
 			return HTTPError{
 				Type:       "unauthorized",
 				Title:      "Unauthorized",
-				Status:     401,
+				Status:     StatusUnauthorized,
 				Detail:     "Invalid credentials",
 				StatusCode: stdhttp.StatusUnauthorized,
 			}
@@ -82,7 +92,7 @@ func ToHTTP(err error) HTTPError {
 			return HTTPError{
 				Type:       "bad-request",
 				Title:      "Bad Request",
-				Status:     400,
+				Status:     StatusBadRequest,
 				Detail:     domainValidationErr.Error(),
 				StatusCode: stdhttp.StatusBadRequest,
 			}
@@ -95,7 +105,7 @@ func ToHTTP(err error) HTTPError {
 		return HTTPError{
 			Type:       "not-found",
 			Title:      "Not Found",
-			Status:     404,
+			Status:     StatusNotFound,
 			Detail:     notFoundErr.Error(),
 			StatusCode: stdhttp.StatusNotFound,
 		}
@@ -117,7 +127,7 @@ func ToHTTP(err error) HTTPError {
 	return HTTPError{
 		Type:       "internal-server-error",
 		Title:      "Internal Server Error",
-		Status:     500,
+		Status:     StatusInternalServerError,
 		Detail:     "An unexpected error occurred",
 		StatusCode: stdhttp.StatusInternalServerError,
 	}
@@ -165,7 +175,7 @@ func ToLoginResponse(err error) v1.LoginResponseObject {
 		return v1.Login400JSONResponse(v1.BadRequest{
 			Type:   "bad-request",
 			Title:  "Bad Request",
-			Status: 400,
+			Status: StatusBadRequest,
 			Detail: httpErr.Detail,
 		})
 	}

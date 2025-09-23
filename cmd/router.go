@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	stdhttp "net/http"
+
 	openapihttp "quest-auth/api/http/auth/v1"
 	"quest-auth/internal/adapters/in/http/validations"
 

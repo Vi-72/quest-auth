@@ -32,7 +32,7 @@ func NewRepository(tracker ports.Tracker, goroutineLimit int) (*Repository, erro
 		goroutineLimit = 5 // default value
 	}
 
-	db := tracker.Db()
+	db := tracker.DB()
 
 	return &Repository{
 		tracker: tracker,

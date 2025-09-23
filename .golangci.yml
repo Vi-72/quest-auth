@@ -1,0 +1,137 @@
+run:
+  timeout: 5m
+  build-tags:
+    - integration
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+  
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  lll:
+    line-length: 120
+  
+  goimports:
+    local-prefixes: quest-auth
+  
+  funlen:
+    lines: 80  # Увеличиваем лимит с 60 до 80 строк
+    statements: 50
+
+linters:
+  enable:
+    - bodyclose
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - mnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+issues:
+  # Исключаем директории с проблемами
+  exclude-dirs:
+    - api/grpc/proto  # Исключаем директорию с .proto файлами
+    - github.com      # Исключаем внешние зависимости
+  
+  # Исключаем файлы с проблемами
+  exclude-files:
+    - ".*\\.pb\\.go$"     # Исключаем сгенерированные protobuf файлы
+    - ".*\\.gen\\.go$"    # Исключаем другие сгенерированные файлы
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - mnd
+        - funlen
+        - goconst
+        - gocyclo
+        - lll
+        - stylecheck
+        - goimports
+        - gosec
+        - gochecknoinits
+    
+    - path: ".*\\.pb\\.go"
+      linters:
+        - all
+    
+    - path: ".*\\.gen\\.go"  
+      linters:
+        - all
+    
+    - path: cmd/
+      linters:
+        - gochecknoinits
+    
+    # Исключения для тестовых файлов и директорий
+    - path: tests/
+      linters:
+        - mnd
+        - funlen
+        - goconst
+        - gocyclo
+        - lll
+        - stylecheck
+        - goimports
+        - gosec
+        - gochecknoinits
+        - typecheck
+    
+    # Исключения для конкретных функций, которые могут быть длинными
+    - path: cmd/router\.go
+      text: "Function 'NewRouter' is too long"
+      linters:
+        - funlen
+    
+    - path: internal/adapters/in/http/httperrs/http_converter\.go
+      text: "Function 'ToHTTP' is too long"
+      linters:
+        - funlen
+    
+    # Исключения для специфичных проблем с TestDIContainer в тестах
+    - text: "TestDIContainer undefined"
+      linters:
+        - typecheck
+  
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

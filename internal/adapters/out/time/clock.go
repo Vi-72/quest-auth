@@ -1,8 +1,9 @@
 package timeadapter
 
 import (
-	"quest-auth/internal/core/ports"
 	stdtime "time"
+
+	"quest-auth/internal/core/ports"
 )
 
 // Clock implements ports.Clock using the system time.
