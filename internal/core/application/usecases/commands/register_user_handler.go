@@ -76,8 +76,9 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 
 	// Сохранение в транзакции
 	err = h.unitOfWork.Execute(ctx, func() error {
-		if createErr := userRepo.Create(&user); createErr != nil {
-			return createErr
+		repo := h.unitOfWork.UserRepository()
+		if err := repo.Create(&user); err != nil {
+			return err
 		}
 
 		// Публикация доменных событий
