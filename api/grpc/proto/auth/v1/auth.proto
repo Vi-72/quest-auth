@@ -4,7 +4,7 @@ package auth.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1;authv1";
+option go_package = "github.com/Vi-72/quest-auth/api/grpc/sdk/go/auth/v1;authv1";
 
 // AuthService предоставляет методы для аутентификации
 service AuthService {

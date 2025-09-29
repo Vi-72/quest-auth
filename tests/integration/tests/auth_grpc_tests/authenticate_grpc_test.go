@@ -2,7 +2,7 @@ package auth_grpc_tests
 
 import (
 	"context"
-	authpb "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
+	authpb "github.com/Vi-72/quest-auth/api/grpc/sdk/go/auth/v1"
 
 	grpcin "github.com/Vi-72/quest-auth/internal/adapters/in/grpc"
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"

@@ -6,7 +6,7 @@ package auth_handler_tests
 import (
 	"context"
 
-	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/auth/v1"
 
 	grpcin "github.com/Vi-72/quest-auth/internal/adapters/in/grpc"
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"
