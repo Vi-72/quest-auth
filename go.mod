@@ -1,4 +1,4 @@
-module quest-auth
+module github.com/Vi-72/quest-auth
 
 go 1.23.2
 
