@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/auth/v1"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

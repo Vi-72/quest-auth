@@ -3,11 +3,11 @@ package http
 import (
 	"context"
 
-	v1 "quest-auth/api/http/auth/v1"
-	"quest-auth/internal/core/application/usecases/commands"
+	v1 "github.com/Vi-72/quest-auth/api/http/auth/v1"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 
-	"quest-auth/internal/adapters/in/http/httperrs"
-	"quest-auth/internal/adapters/in/http/validations"
+	"github.com/Vi-72/quest-auth/internal/adapters/in/http/httperrs"
+	"github.com/Vi-72/quest-auth/internal/adapters/in/http/validations"
 )
 
 // Login implements POST /auth/login from OpenAPI.

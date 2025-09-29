@@ -4,8 +4,8 @@ import (
 	"errors"
 	stdhttp "net/http"
 
-	v1 "quest-auth/api/http/auth/v1"
-	"quest-auth/internal/pkg/errs"
+	v1 "github.com/Vi-72/quest-auth/api/http/auth/v1"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
 
 // HTTP Status Code Constants

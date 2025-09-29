@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"quest-auth/internal/core/domain/model/kernel"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
 )
 
 func TestNewPhone_ValidInput(t *testing.T) {

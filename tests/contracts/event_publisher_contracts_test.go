@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 
-	"quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 type EventPublisherContractSuite struct {

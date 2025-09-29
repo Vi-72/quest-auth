@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"quest-auth/internal/adapters/out/postgres/eventrepo"
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/eventrepo"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 func (s *Suite) TestEventRepository_Publish_SavesEvent() {

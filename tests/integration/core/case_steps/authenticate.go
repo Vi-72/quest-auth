@@ -4,9 +4,9 @@ import (
 	"context"
 	authpb "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 
-	grpcin "quest-auth/internal/adapters/in/grpc"
-	"quest-auth/internal/core/application/usecases/queries"
-	"quest-auth/internal/core/ports"
+	grpcin "github.com/Vi-72/quest-auth/internal/adapters/in/grpc"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 // AuthenticateByTokenStep invokes the gRPC Authenticate handler using provided JWT service and token

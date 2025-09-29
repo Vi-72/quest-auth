@@ -8,10 +8,10 @@ import (
 
 	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
 
-	grpcin "quest-auth/internal/adapters/in/grpc"
-	"quest-auth/internal/core/application/usecases/queries"
-	casesteps "quest-auth/tests/integration/core/case_steps"
-	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
+	grpcin "github.com/Vi-72/quest-auth/internal/adapters/in/grpc"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"
+	casesteps "github.com/Vi-72/quest-auth/tests/integration/core/case_steps"
+	testdatagenerators "github.com/Vi-72/quest-auth/tests/integration/core/test_data_generators"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

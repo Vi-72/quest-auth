@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"quest-auth/internal/core/domain/model/kernel"
-	"quest-auth/internal/pkg/ddd"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
+	"github.com/Vi-72/quest-auth/internal/pkg/ddd"
 
 	"github.com/google/uuid"
 )

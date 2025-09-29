@@ -3,9 +3,9 @@ package postgres
 import (
 	"context"
 
-	"quest-auth/internal/adapters/out/postgres/userrepo"
-	"quest-auth/internal/core/ports"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/userrepo"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 
 	"gorm.io/gorm"
 )

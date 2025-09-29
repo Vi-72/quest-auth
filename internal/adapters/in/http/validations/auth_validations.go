@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	v1 "quest-auth/api/http/auth/v1"
+	v1 "github.com/Vi-72/quest-auth/api/http/auth/v1"
 )
 
 // RegisterUserRequest — запрос на регистрацию пользователя

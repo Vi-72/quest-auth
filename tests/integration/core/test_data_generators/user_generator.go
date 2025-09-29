@@ -2,13 +2,13 @@ package testdatagenerators
 
 import (
 	"fmt"
+	"github.com/Vi-72/quest-auth/api/http/auth/v1"
 	"math/rand"
 	"os"
-	"quest-auth/api/http/auth/v1"
 	"strconv"
 	"time"
 
-	"quest-auth/internal/core/application/usecases/commands"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )

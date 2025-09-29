@@ -3,7 +3,7 @@ package auth_e2e_tests
 import (
 	"testing"
 
-	tests "quest-auth/tests/integration/tests"
+	tests "github.com/Vi-72/quest-auth/tests/integration/tests"
 
 	"github.com/stretchr/testify/suite"
 )

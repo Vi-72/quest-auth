@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/proto/auth/v1"
+	authv1 "github.com/Vi-72/quest-auth/api/grpc/sdk/go/auth/v1"
 
-	"quest-auth/internal/core/application/usecases/queries"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

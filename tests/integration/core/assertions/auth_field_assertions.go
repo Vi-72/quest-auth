@@ -1,7 +1,7 @@
 package assertions
 
 import (
-	"quest-auth/api/http/auth/v1"
+	"github.com/Vi-72/quest-auth/api/http/auth/v1"
 	"strings"
 
 	"github.com/stretchr/testify/assert"

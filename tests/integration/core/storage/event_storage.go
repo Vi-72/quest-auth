@@ -4,7 +4,7 @@ import (
 	"context"
 	"gorm.io/gorm"
 
-	"quest-auth/internal/adapters/out/postgres/eventrepo"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/eventrepo"
 )
 
 // EventStorage provides helpers to work with events in tests

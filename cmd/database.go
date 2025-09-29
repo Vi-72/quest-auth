@@ -8,9 +8,9 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"quest-auth/internal/adapters/out/postgres/eventrepo"
-	"quest-auth/internal/adapters/out/postgres/userrepo"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/eventrepo"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/userrepo"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 
 	_ "github.com/lib/pq"
 )

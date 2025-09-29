@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"quest-auth/internal/pkg/ddd"
+	"github.com/Vi-72/quest-auth/internal/pkg/ddd"
 )
 
 // EventPublisher defines methods for publishing domain events

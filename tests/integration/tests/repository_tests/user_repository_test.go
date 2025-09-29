@@ -6,9 +6,9 @@
 package repository
 
 import (
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/domain/model/kernel"
-	domainhelpers "quest-auth/tests/domain"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
+	domainhelpers "github.com/Vi-72/quest-auth/tests/domain"
 )
 
 func (s *Suite) TestUserRepository_Create_And_GetByID() {

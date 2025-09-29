@@ -2,12 +2,12 @@ package assertions
 
 import (
 	"encoding/json"
+	"github.com/Vi-72/quest-auth/api/http/auth/v1"
 	stdhttp "net/http"
-	"quest-auth/api/http/auth/v1"
 
 	"github.com/stretchr/testify/assert"
 
-	casesteps "quest-auth/tests/integration/core/case_steps"
+	casesteps "github.com/Vi-72/quest-auth/tests/integration/core/case_steps"
 )
 
 type AuthHTTPAssertions struct {

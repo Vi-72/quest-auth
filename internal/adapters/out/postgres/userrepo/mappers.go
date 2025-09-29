@@ -1,10 +1,10 @@
 package userrepo
 
 import (
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/domain/model/kernel"
-	"quest-auth/internal/pkg/ddd"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
+	"github.com/Vi-72/quest-auth/internal/pkg/ddd"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
 
 // ToEntity преобразует DTO в доменную сущность User

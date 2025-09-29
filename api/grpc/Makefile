@@ -18,5 +18,7 @@ BUF := $(shell go env GOPATH)/bin/buf
 generate:
 	$(info generating go files from proto files...)
 	@PATH="$(shell go env GOPATH)/bin:$$PATH" $(BUF) generate proto
-	@cd ./sdk/go && go mod tidy
+	@cd ./sdk/go && go mod init $(MODULE_NAME) && go mod tidy
+
+
 

@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/uuid"
 
-	postgres "quest-auth/internal/adapters/out/postgres"
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/ports"
-	"quest-auth/internal/pkg/ddd"
-	"quest-auth/internal/pkg/errs"
+	postgres "github.com/Vi-72/quest-auth/internal/adapters/out/postgres"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/pkg/ddd"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
 
 var _ ports.EventPublisher = &Repository{}

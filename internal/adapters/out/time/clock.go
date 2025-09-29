@@ -3,7 +3,7 @@ package timeadapter
 import (
 	stdtime "time"
 
-	"quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 // Clock implements ports.Clock using the system time.

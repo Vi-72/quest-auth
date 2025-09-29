@@ -3,7 +3,7 @@ package bcryptadapter
 import (
 	gobcrypt "golang.org/x/crypto/bcrypt"
 
-	"quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 // Hasher implements PasswordHasher using bcrypt.

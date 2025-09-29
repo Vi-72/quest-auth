@@ -3,7 +3,7 @@ package casesteps
 import (
 	"context"
 
-	"quest-auth/internal/core/application/usecases/commands"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 )
 
 // LoginUserStep logs user in through the command handler

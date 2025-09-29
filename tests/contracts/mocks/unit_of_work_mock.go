@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
 )
 
 type MockUnitOfWork struct {

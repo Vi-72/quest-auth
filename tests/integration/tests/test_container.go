@@ -6,14 +6,14 @@ import (
 	"os"
 	"time"
 
-	"quest-auth/cmd"
-	bcryptadapter "quest-auth/internal/adapters/out/bcrypt"
-	"quest-auth/internal/adapters/out/jwt"
-	"quest-auth/internal/adapters/out/postgres"
-	timeadapter "quest-auth/internal/adapters/out/time"
-	"quest-auth/internal/core/application/usecases/commands"
-	"quest-auth/internal/core/ports"
-	stor "quest-auth/tests/integration/core/storage"
+	"github.com/Vi-72/quest-auth/cmd"
+	bcryptadapter "github.com/Vi-72/quest-auth/internal/adapters/out/bcrypt"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/jwt"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres"
+	timeadapter "github.com/Vi-72/quest-auth/internal/adapters/out/time"
+	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
+	stor "github.com/Vi-72/quest-auth/tests/integration/core/storage"
 
 	"gorm.io/gorm"
 )

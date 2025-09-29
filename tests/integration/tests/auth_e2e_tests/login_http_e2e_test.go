@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	casesteps "quest-auth/tests/integration/core/case_steps"
-	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
+	casesteps "github.com/Vi-72/quest-auth/tests/integration/core/case_steps"
+	testdatagenerators "github.com/Vi-72/quest-auth/tests/integration/core/test_data_generators"
 )
 
 // E2E 1: Login via HTTP and verify event stored

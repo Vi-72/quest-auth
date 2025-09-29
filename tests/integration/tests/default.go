@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"quest-auth/cmd"
+	"github.com/Vi-72/quest-auth/cmd"
 
 	"github.com/stretchr/testify/suite"
 )

@@ -3,10 +3,10 @@ package commands
 import (
 	"context"
 
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/domain/model/kernel"
-	"quest-auth/internal/core/ports"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
 
 // RegisterUserHandler — обработчик регистрации пользователя

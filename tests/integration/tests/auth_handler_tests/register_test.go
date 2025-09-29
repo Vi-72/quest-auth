@@ -7,8 +7,8 @@ import (
 	"context"
 	"strings"
 
-	casesteps "quest-auth/tests/integration/core/case_steps"
-	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
+	casesteps "github.com/Vi-72/quest-auth/tests/integration/core/case_steps"
+	testdatagenerators "github.com/Vi-72/quest-auth/tests/integration/core/test_data_generators"
 )
 
 func (s *Suite) TestRegisterHandler_Success() {

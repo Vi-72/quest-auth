@@ -1,8 +1,8 @@
 package validations
 
 import (
-	"quest-auth/internal/adapters/in/http/problems"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/adapters/in/http/problems"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
 
 // ConvertValidationErrorToProblem конвертирует ValidationError в Problem Details

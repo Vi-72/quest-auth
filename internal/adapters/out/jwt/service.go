@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"quest-auth/internal/core/ports"
-	"quest-auth/internal/pkg/errs"
+	"github.com/Vi-72/quest-auth/internal/core/ports"
+	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"

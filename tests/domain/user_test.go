@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"quest-auth/internal/core/domain/model/auth"
-	"quest-auth/internal/core/domain/model/kernel"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
 )
 
 func TestUser_NewUser_Success(t *testing.T) {

@@ -1,6 +1,6 @@
 package http
 
-import "quest-auth/internal/core/application/usecases/commands"
+import "github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 
 // APIHandler реализует StrictServerInterface для OpenAPI
 type APIHandler struct {

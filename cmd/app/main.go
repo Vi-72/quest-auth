@@ -10,8 +10,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"quest-auth/cmd"
-	grpcAdapter "quest-auth/internal/adapters/in/grpc"
+	"github.com/Vi-72/quest-auth/cmd"
+	grpcAdapter "github.com/Vi-72/quest-auth/internal/adapters/in/grpc"
 )
 
 func main() {

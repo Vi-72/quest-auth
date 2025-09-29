@@ -3,9 +3,9 @@ package auth_e2e_tests
 import (
 	"context"
 
-	"quest-auth/tests/integration/core/assertions"
-	casesteps "quest-auth/tests/integration/core/case_steps"
-	testdatagenerators "quest-auth/tests/integration/core/test_data_generators"
+	"github.com/Vi-72/quest-auth/tests/integration/core/assertions"
+	casesteps "github.com/Vi-72/quest-auth/tests/integration/core/case_steps"
+	testdatagenerators "github.com/Vi-72/quest-auth/tests/integration/core/test_data_generators"
 )
 
 // E2E 1: Create user via HTTP (register) and verify token fields

@@ -1,7 +1,7 @@
 package auth_handler_tests
 
 import (
-	"quest-auth/tests/integration/tests"
+	"github.com/Vi-72/quest-auth/tests/integration/tests"
 	"testing"
 
 	"github.com/stretchr/testify/suite"

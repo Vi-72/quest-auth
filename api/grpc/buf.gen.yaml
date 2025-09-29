@@ -1,10 +1,10 @@
 version: v1
 plugins:
   - plugin: go
-    out: sdk/go/proto
+    out: sdk/go
     opt:
       - paths=source_relative
   - plugin: go-grpc
-    out: sdk/go/proto
+    out: sdk/go
     opt:
       - paths=source_relative
