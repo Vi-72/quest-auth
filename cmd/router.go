@@ -4,12 +4,12 @@ import (
 	"errors"
 	stdhttp "net/http"
 
-	openapihttp "github.com/Vi-72/quest-auth/api/http/auth/v1"
-	"github.com/Vi-72/quest-auth/internal/adapters/in/http/validations"
-
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware" // ← добавлено
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
+	openapihttp "github.com/Vi-72/quest-auth/api/http/auth/v1"
+	httpmiddleware "github.com/Vi-72/quest-auth/internal/adapters/in/http/middleware"
 	"github.com/Vi-72/quest-auth/internal/adapters/in/http/problems"
 	"github.com/Vi-72/quest-auth/internal/pkg/errs"
 )
@@ -20,9 +20,17 @@ func NewRouter(root *CompositionRoot) stdhttp.Handler {
 	router := chi.NewRouter()
 
 	// --- Базовые middleware ---
-	router.Use(middleware.RequestID)
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.Logger)
+	router.Use(chimiddleware.RequestID)
+	router.Use(chimiddleware.Recoverer)
+	router.Use(chimiddleware.Logger)
+
+	// Load OpenAPI spec
+	swagger, err := openapihttp.GetSwagger()
+	if err != nil {
+		panic("failed to load OpenAPI spec: " + err.Error())
+	}
+
+	swagger.Servers = []*openapi3.Server{{URL: apiV1Prefix}}
 
 	// --- Health check ---
 	router.Get("/health", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
@@ -86,20 +94,11 @@ func NewRouter(root *CompositionRoot) stdhttp.Handler {
 			problem.WriteResponse(w)
 		},
 		ResponseErrorHandlerFunc: func(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
-			// Check if it's a validation error from our pkg/validations
-			var validationErr *validations.ValidationError
-			if errors.As(err, &validationErr) {
-				// Convert validation error to Problem Details and return
-				problem := validations.ConvertValidationErrorToProblem(validationErr)
-				problem.WriteResponse(w)
-				return
-			}
-
 			// Check if it's a domain validation error from application layer
 			var domainValidationErr *errs.DomainValidationError
 			if errors.As(err, &domainValidationErr) {
 				// Convert to 400 Bad Request
-				problem := validations.ConvertDomainValidationErrorToProblem(domainValidationErr)
+				problem := problems.NewBadRequest(domainValidationErr.Error())
 				problem.WriteResponse(w)
 				return
 			}
@@ -108,7 +107,7 @@ func NewRouter(root *CompositionRoot) stdhttp.Handler {
 			var notFoundErr *errs.NotFoundError
 			if errors.As(err, &notFoundErr) {
 				// Convert to 404 Not Found
-				problem := validations.ConvertNotFoundErrorToProblem(notFoundErr)
+				problem := problems.NewNotFound(notFoundErr.Error())
 				problem.WriteResponse(w)
 				return
 			}
@@ -119,7 +118,18 @@ func NewRouter(root *CompositionRoot) stdhttp.Handler {
 		},
 	})
 
-	apiRouter := openapihttp.HandlerFromMuxWithBaseURL(apiHandler, router, apiV1Prefix)
+	// Create API router with OpenAPI validation middleware
+	apiRouter := chi.NewRouter()
 
-	return apiRouter
+	// Add OpenAPI validation middleware
+	validationMW, err := httpmiddleware.NewOpenAPIValidationMiddleware(swagger)
+	if err == nil {
+		apiRouter.Use(validationMW.Validate)
+	}
+
+	openapihttp.HandlerFromMux(apiHandler, apiRouter)
+
+	router.Mount(apiV1Prefix, apiRouter)
+
+	return router
 }

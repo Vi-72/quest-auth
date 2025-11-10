@@ -7,7 +7,6 @@ import (
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 
 	"github.com/Vi-72/quest-auth/internal/adapters/in/http/httperrs"
-	"github.com/Vi-72/quest-auth/internal/adapters/in/http/validations"
 )
 
 // Register implements POST /auth/register from OpenAPI.
@@ -15,19 +14,16 @@ func (a *APIHandler) Register(
 	ctx context.Context,
 	request v1.RegisterRequestObject,
 ) (v1.RegisterResponseObject, error) {
-	// Validate register request body (includes nil check)
-	validatedData, validationErr := validations.ValidateRegisterUserRequestBody(request.Body)
-	if validationErr != nil {
-		// Use unified error converter
-		return httperrs.ToRegisterResponse(validationErr), nil
-	}
+	// OpenAPI validation middleware already validated the request
+	// Just extract the data from request.Body
+	body := request.Body
 
 	// Execute register command
 	cmd := commands.RegisterUserCommand{
-		Email:    validatedData.Email,
-		Phone:    validatedData.Phone,
-		Name:     validatedData.Name,
-		Password: validatedData.Password,
+		Email:    string(body.Email),
+		Phone:    body.Phone,
+		Name:     body.Name,
+		Password: body.Password,
 	}
 
 	result, err := a.registerHandler.Handle(ctx, cmd)

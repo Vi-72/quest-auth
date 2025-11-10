@@ -7,22 +7,18 @@ import (
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 
 	"github.com/Vi-72/quest-auth/internal/adapters/in/http/httperrs"
-	"github.com/Vi-72/quest-auth/internal/adapters/in/http/validations"
 )
 
 // Login implements POST /auth/login from OpenAPI.
 func (a *APIHandler) Login(ctx context.Context, request v1.LoginRequestObject) (v1.LoginResponseObject, error) {
-	// Validate login request body (includes nil check)
-	validatedData, validationErr := validations.ValidateLoginUserRequestBody(request.Body)
-	if validationErr != nil {
-		// Use unified error converter
-		return httperrs.ToLoginResponse(validationErr), nil
-	}
+	// OpenAPI validation middleware already validated the request
+	// Just extract the data from request.Body
+	body := request.Body
 
 	// Execute login command
 	cmd := commands.LoginUserCommand{
-		Email:    validatedData.Email,
-		Password: validatedData.Password,
+		Email:    string(body.Email),
+		Password: body.Password,
 	}
 
 	result, err := a.loginHandler.Handle(ctx, cmd)
