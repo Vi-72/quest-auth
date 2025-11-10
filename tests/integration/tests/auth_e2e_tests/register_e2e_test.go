@@ -39,18 +39,91 @@ func (s *E2ESuite) TestCreateUserThroughAPI() {
 	s.Assert().GreaterOrEqual(len(events), 1)
 }
 
-// Negative E2E: Domain-level validation error during registration (short password)
-func (s *E2ESuite) TestCreateUserThroughAPI_DomainValidation_ShortPassword() {
+// OpenAPI Validation Tests for Register (table-driven)
+func (s *E2ESuite) TestRegisterHTTP_OpenAPIValidation() {
 	ctx := context.Background()
 
-	// Prepare invalid request (domain violation: password too short)
-	invalid := testdatagenerators.DefaultUserData().ToRegisterHTTPRequest()
-	invalid["password"] = "short"
+	testCases := []struct {
+		name        string
+		modifyBody  func(body map[string]any)
+		expectError string
+	}{
+		{
+			name:        "email_too_short",
+			modifyBody:  func(b map[string]any) { b["email"] = "a@b" },
+			expectError: "validation",
+		},
+		{
+			name: "email_too_long",
+			modifyBody: func(b map[string]any) {
+				b["email"] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com"
+			},
+			expectError: "validation",
+		},
+		{
+			name:        "email_invalid_pattern",
+			modifyBody:  func(b map[string]any) { b["email"] = "notanemail" },
+			expectError: "validation",
+		},
+		{
+			name:        "phone_too_short",
+			modifyBody:  func(b map[string]any) { b["phone"] = "+123" },
+			expectError: "validation",
+		},
+		{
+			name:        "phone_invalid_pattern",
+			modifyBody:  func(b map[string]any) { b["phone"] = "1234567890" },
+			expectError: "validation",
+		},
+		{
+			name:        "phone_starts_with_zero",
+			modifyBody:  func(b map[string]any) { b["phone"] = "+0123456789" },
+			expectError: "validation",
+		},
+		{
+			name:        "name_empty",
+			modifyBody:  func(b map[string]any) { b["name"] = "" },
+			expectError: "validation",
+		},
+		{
+			name:        "name_only_whitespace",
+			modifyBody:  func(b map[string]any) { b["name"] = "   " },
+			expectError: "validation",
+		},
+		{
+			name:        "password_too_short",
+			modifyBody:  func(b map[string]any) { b["password"] = "short12" },
+			expectError: "validation",
+		},
+		{
+			name:        "missing_email",
+			modifyBody:  func(b map[string]any) { delete(b, "email") },
+			expectError: "",
+		},
+		{
+			name:        "missing_phone",
+			modifyBody:  func(b map[string]any) { delete(b, "phone") },
+			expectError: "",
+		},
+		{
+			name:        "missing_password",
+			modifyBody:  func(b map[string]any) { delete(b, "password") },
+			expectError: "",
+		},
+	}
 
-	req := casesteps.RegisterHTTPRequest(invalid)
-	resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			body := testdatagenerators.DefaultUserData().ToRegisterHTTPRequest()
+			tc.modifyBody(body)
 
-	// Should surface as HTTP 400 with problem details
-	s.Assert().Equal(400, resp.StatusCode)
-	s.Assert().Contains(resp.Body, "Bad Request")
+			req := casesteps.RegisterHTTPRequest(body)
+			resp, _ := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+
+			s.Assert().Equal(400, resp.StatusCode, "Expected 400 status code")
+			if tc.expectError != "" {
+				s.Assert().Contains(resp.Body, tc.expectError)
+			}
+		})
+	}
 }

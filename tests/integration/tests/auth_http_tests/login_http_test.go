@@ -31,32 +31,74 @@ func (s *Suite) TestLoginHTTP_Success() {
 	tokenAsserts.VerifyTokensPresent(login.TokenType, login.AccessToken, login.RefreshToken, login.ExpiresIn)
 }
 
-func (s *Suite) TestLoginHTTP_Validation_EmptyBody() {
+// OpenAPI Validation Tests for Login (table-driven)
+func (s *Suite) TestLoginHTTP_OpenAPIValidation() {
 	ctx := context.Background()
-	// Pre-condition: empty body
-	req := casesteps.LoginHTTPRequest(map[string]any{})
-	// Act
-	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
-	// Assert
-	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
-}
 
-func (s *Suite) TestLoginHTTP_Validation_InvalidEmailFormat() {
-	ctx := context.Background()
-	// Pre-condition: invalid email format
-	req := casesteps.LoginHTTPRequest(map[string]any{"email": "invalid", "password": "password"})
-	// Act
-	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
-	// Assert
-	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
-}
+	testCases := []struct {
+		name        string
+		email       string
+		password    string
+		expectError string
+	}{
+		{
+			name:        "email_too_short",
+			email:       "a@b",
+			password:    "password123",
+			expectError: "validation",
+		},
+		{
+			name:        "email_too_long",
+			email:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+			password:    "password123",
+			expectError: "validation",
+		},
+		{
+			name:        "email_invalid_pattern",
+			email:       "notanemail",
+			password:    "password123",
+			expectError: "validation",
+		},
+		{
+			name:        "email_with_spaces",
+			email:       "user name@example.com",
+			password:    "password123",
+			expectError: "validation",
+		},
+		{
+			name:        "password_empty",
+			email:       "user@example.com",
+			password:    "",
+			expectError: "validation",
+		},
+		{
+			name:        "password_too_long",
+			email:       "user@example.com",
+			password:    string(make([]byte, 129)), // 129 chars, max 128
+			expectError: "validation",
+		},
+		{
+			name:        "both_missing",
+			email:       "",
+			password:    "",
+			expectError: "",
+		},
+		{
+			name:        "missing_password",
+			email:       "user@example.com",
+			password:    "",
+			expectError: "validation",
+		},
+	}
 
-func (s *Suite) TestLoginHTTP_Validation_MissingPassword() {
-	ctx := context.Background()
-	// Pre-condition: missing password
-	req := casesteps.LoginHTTPRequest(map[string]any{"email": "user@example.com"})
-	// Act
-	resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
-	// Assert
-	assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, "")
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			req := casesteps.LoginHTTPRequest(map[string]any{
+				"email":    tc.email,
+				"password": tc.password,
+			})
+			resp, err := casesteps.ExecuteHTTPRequest(ctx, s.TestDIContainer.HTTPRouter, req)
+			assertions.NewAuthHTTPAssertions(s.Assert()).HTTPErrorResponse(resp, err, 400, tc.expectError)
+		})
+	}
 }
