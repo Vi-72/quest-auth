@@ -49,34 +49,34 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 	err = h.txManager.RunInTransaction(ctx, func(ctx context.Context, repos ports.Repositories) error {
 		userRepo := repos.User
 
-		emailExists, err := userRepo.EmailExists(email)
-		if err != nil {
-			return err
+		emailExists, txErr := userRepo.EmailExists(email)
+		if txErr != nil {
+			return txErr
 		}
 		if emailExists {
 			return errs.NewDomainValidationError("email", "email already exists")
 		}
 
-		phoneExists, err := userRepo.PhoneExists(phone)
-		if err != nil {
-			return err
+		phoneExists, txErr := userRepo.PhoneExists(phone)
+		if txErr != nil {
+			return txErr
 		}
 		if phoneExists {
 			return errs.NewDomainValidationError("phone", "phone already exists")
 		}
 
-		user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password, h.passwordHasher, h.clock)
-		if err != nil {
-			return errs.NewDomainValidationError("user", err.Error())
+		user, txErr := auth.NewUser(email, phone, cmd.Name, cmd.Password, h.passwordHasher, h.clock)
+		if txErr != nil {
+			return errs.NewDomainValidationError("user", txErr.Error())
 		}
 
-		if err := userRepo.Create(&user); err != nil {
-			return err
+		if txErr := userRepo.Create(&user); txErr != nil {
+			return txErr
 		}
 
 		if repos.Event != nil {
-			if err := repos.Event.Publish(ctx, user.GetDomainEvents()...); err != nil {
-				return err
+			if txErr := repos.Event.Publish(ctx, user.GetDomainEvents()...); txErr != nil {
+				return txErr
 			}
 		}
 		user.ClearDomainEvents()

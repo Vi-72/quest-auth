@@ -43,8 +43,8 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 	err = h.txManager.RunInTransaction(ctx, func(ctx context.Context, repos ports.Repositories) error {
 		userRepo := repos.User
 
-		user, err := userRepo.GetByEmail(email)
-		if err != nil {
+		user, txErr := userRepo.GetByEmail(email)
+		if txErr != nil {
 			return errs.NewDomainValidationError("credentials", "invalid email or password")
 		}
 
@@ -55,8 +55,8 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 		user.MarkLoggedIn(h.clock)
 
 		if repos.Event != nil {
-			if err := repos.Event.Publish(ctx, user.GetDomainEvents()...); err != nil {
-				return err
+			if txErr := repos.Event.Publish(ctx, user.GetDomainEvents()...); txErr != nil {
+				return txErr
 			}
 		}
 		user.ClearDomainEvents()
