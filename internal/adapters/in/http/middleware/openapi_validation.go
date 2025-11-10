@@ -55,7 +55,7 @@ func (mw *OpenAPIValidationMiddleware) validateRequest(r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		if err := r.Body.Close(); err != nil {
+		if err = r.Body.Close(); err != nil {
 			return err
 		}
 	}
@@ -95,4 +95,3 @@ func (mw *OpenAPIValidationMiddleware) validateRequest(r *http.Request) error {
 
 	return nil
 }
-

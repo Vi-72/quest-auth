@@ -41,14 +41,14 @@ func NewRouter(root *CompositionRoot) stdhttp.Handler {
 
 	// Swagger JSON
 	router.Get("/openapi.json", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
-		spec, err := openapihttp.GetSwagger()
-		if err != nil {
-			stdhttp.Error(w, "failed to load OpenAPI spec: "+err.Error(), stdhttp.StatusInternalServerError)
+		spec, specErr := openapihttp.GetSwagger()
+		if specErr != nil {
+			stdhttp.Error(w, "failed to load OpenAPI spec: "+specErr.Error(), stdhttp.StatusInternalServerError)
 			return
 		}
-		bytes, err := spec.MarshalJSON()
-		if err != nil {
-			stdhttp.Error(w, "failed to marshal OpenAPI: "+err.Error(), stdhttp.StatusInternalServerError)
+		bytes, marshalErr := spec.MarshalJSON()
+		if marshalErr != nil {
+			stdhttp.Error(w, "failed to marshal OpenAPI: "+marshalErr.Error(), stdhttp.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
