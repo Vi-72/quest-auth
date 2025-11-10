@@ -47,8 +47,3 @@ func (s *EventPublisherContractSuite) TestPublishEmpty() {
 	err := s.publisher.Publish(s.ctx)
 	s.Assert().NoError(err)
 }
-
-func (s *EventPublisherContractSuite) TestPublishAsync() {
-	e := testEvent{id: uuid.New()}
-	s.publisher.PublishAsync(s.ctx, e)
-}

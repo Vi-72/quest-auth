@@ -10,6 +10,7 @@ import (
 	bcryptadapter "github.com/Vi-72/quest-auth/internal/adapters/out/bcrypt"
 	"github.com/Vi-72/quest-auth/internal/adapters/out/jwt"
 	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres"
+	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/userrepo"
 	timeadapter "github.com/Vi-72/quest-auth/internal/adapters/out/time"
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 	"github.com/Vi-72/quest-auth/internal/core/ports"
@@ -47,9 +48,9 @@ func getTestEnv(key, defaultValue string) string {
 // TestDIContainer содержит все зависимости для интеграционных тестов
 type TestDIContainer struct {
 	SuiteDIContainer
-	DB         *gorm.DB
-	CloseDB    func()
-	UnitOfWork ports.UnitOfWork
+	DB                 *gorm.DB
+	CloseDB            func()
+	TransactionManager ports.TransactionManager
 
 	// Repositories
 	UserRepository ports.UserRepository
@@ -96,12 +97,11 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 	db, sqlDB, err := cmd.MustConnectDB(databaseURL)
 	suiteContainer.Require().NoError(err, "Failed to connect to test database")
 
-	// Создание Unit of Work
-	unitOfWork, err := postgres.NewUnitOfWork(db)
-	suiteContainer.Require().NoError(err, "Failed to create unit of work")
+	// Создаем transaction manager
+	txManager := postgres.NewTransactionManager(db)
 
-	// Получаем репозитории из UnitOfWork
-	userRepo := unitOfWork.UserRepository()
+	// Репозитории из общей базы (для запросов вне транзакции)
+	userRepo := userrepo.NewRepository(db)
 
 	// Создание EventPublisher (используем NullEventPublisher для тестов)
 	eventPublisher := &ports.NullEventPublisher{}
@@ -118,8 +118,8 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 	clock := timeadapter.NewClock()
 
 	// Создание обработчиков use cases
-	loginUserHandler := commands.NewLoginUserHandler(unitOfWork, eventPublisher, jwtService, passwordHasher, clock)
-	registerUserHandler := commands.NewRegisterUserHandler(unitOfWork, eventPublisher, jwtService, passwordHasher, clock)
+	loginUserHandler := commands.NewLoginUserHandler(txManager, jwtService, passwordHasher, clock)
+	registerUserHandler := commands.NewRegisterUserHandler(txManager, jwtService, passwordHasher, clock)
 
 	// Create HTTP Router for API testing
 	compositionRoot := cmd.NewCompositionRoot(testConfig, db)
@@ -137,7 +137,7 @@ func NewTestDIContainer(suiteContainer SuiteDIContainer) TestDIContainer {
 				return
 			}
 		},
-		UnitOfWork: unitOfWork,
+		TransactionManager: txManager,
 
 		UserRepository: userRepo,
 		EventPublisher: eventPublisher,

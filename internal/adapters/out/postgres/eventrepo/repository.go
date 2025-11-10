@@ -2,13 +2,11 @@ package eventrepo
 
 import (
 	"context"
-	"log/slog"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 
-	postgres "github.com/Vi-72/quest-auth/internal/adapters/out/postgres"
 	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
 	"github.com/Vi-72/quest-auth/internal/core/ports"
 	"github.com/Vi-72/quest-auth/internal/pkg/ddd"
@@ -18,120 +16,37 @@ import (
 var _ ports.EventPublisher = &Repository{}
 
 type Repository struct {
-	trackerFactory     func() (ports.Tracker, error)
-	tracker            ports.Tracker
-	goroutineSemaphore chan struct{} // Semaphore for limiting goroutines
-	mu                 sync.Mutex
+	db *gorm.DB
 }
 
-func NewRepository(tracker ports.Tracker, goroutineLimit int) (*Repository, error) {
-	if tracker == nil {
-		return nil, errs.NewValueIsRequiredError("tracker")
-	}
-	if goroutineLimit <= 0 {
-		goroutineLimit = 5 // default value
-	}
-
-	db := tracker.DB()
-
-	return &Repository{
-		tracker: tracker,
-		trackerFactory: func() (ports.Tracker, error) {
-			uow, err := postgres.NewUnitOfWork(db)
-			if err != nil {
-				return nil, err
-			}
-			return uow.(ports.Tracker), nil
-		},
-		goroutineSemaphore: make(chan struct{}, goroutineLimit),
-	}, nil
+func NewRepository(db *gorm.DB) *Repository {
+	return &Repository{db: db}
 }
 
-// PublishAsync asynchronously publishes events with goroutine limiting
-func (r *Repository) PublishAsync(ctx context.Context, events ...ddd.DomainEvent) {
-	if len(events) == 0 {
-		return
-	}
-
-	// Запускаем в горутине с ограничением
-	go func() {
-		// Занимаем слот в семафоре
-		r.goroutineSemaphore <- struct{}{}
-		defer func() {
-			// Освобождаем слот
-			<-r.goroutineSemaphore
-		}()
-
-		tracker, err := r.trackerFactory()
-		if err != nil {
-			slog.Error("Failed to create tracker for event publishing", slog.Any("error", err))
-			return
-		}
-
-		if err := r.publishWithTracker(ctx, tracker, events...); err != nil {
-			slog.Error("Failed to publish events", slog.Any("error", err))
-		}
-	}()
-}
-
-// Publish сохраняет доменные события в базу данных
 func (r *Repository) Publish(ctx context.Context, events ...ddd.DomainEvent) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	return r.publishWithTracker(ctx, r.tracker, events...)
-}
-
-// PublishDomainEvents реализует интерфейс для use cases
-func (r *Repository) PublishDomainEvents(ctx context.Context, events []ddd.DomainEvent) error {
-	return r.Publish(ctx, events...)
-}
-
-func (r *Repository) publishWithTracker(ctx context.Context, tracker ports.Tracker, events ...ddd.DomainEvent) error {
-	if len(events) == 0 {
-		return nil
-	}
-
-	isInTransaction := tracker.InTx()
-	if !isInTransaction {
-		if err := tracker.Begin(ctx); err != nil {
-			return errs.WrapInfrastructureError("failed to begin event transaction", err)
-		}
-	}
-	tx := tracker.Tx()
-
+	var dtos []EventDTO
 	for _, event := range events {
 		dto, err := r.domainEventToDTO(event)
 		if err != nil {
-			if !isInTransaction {
-				_ = tracker.Rollback()
-			}
 			return errs.WrapInfrastructureError("failed to convert event to DTO", err)
 		}
-
-		err = tx.WithContext(ctx).Create(&dto).Error
-		if err != nil {
-			if !isInTransaction {
-				_ = tracker.Rollback()
-			}
-			return errs.WrapInfrastructureError("failed to save event", err)
-		}
+		dtos = append(dtos, dto)
 	}
 
-	if !isInTransaction {
-		if err := tracker.Commit(ctx); err != nil {
-			return errs.WrapInfrastructureError("failed to commit event transaction", err)
+	db := r.db.WithContext(ctx)
+	for i := range dtos {
+		if err := db.Create(&dtos[i]).Error; err != nil {
+			return errs.WrapInfrastructureError("failed to save event", err)
 		}
 	}
 
 	return nil
 }
 
-// domainEventToDTO конвертирует доменное событие в DTO
 func (r *Repository) domainEventToDTO(event ddd.DomainEvent) (EventDTO, error) {
 	dto := EventDTO{
 		ID:        event.GetID().String(),
@@ -139,16 +54,12 @@ func (r *Repository) domainEventToDTO(event ddd.DomainEvent) (EventDTO, error) {
 		CreatedAt: time.Now(),
 	}
 
-	// Определяем AggregateID и данные в зависимости от типа события
 	switch e := event.(type) {
-	// Обрабатываем явно поддерживаемые типы
 	case auth.UserRegistered,
 		auth.UserPhoneChanged,
 		auth.UserNameChanged,
 		auth.UserPasswordChanged,
 		auth.UserLoggedIn:
-
-		// Приводим к общему интерфейсу
 		agg, ok := e.(interface {
 			GetAggregateID() uuid.UUID
 		})
@@ -165,16 +76,14 @@ func (r *Repository) domainEventToDTO(event ddd.DomainEvent) (EventDTO, error) {
 		dto.Data = data
 
 	default:
-		// Fallback для неизвестных событий
-		// Попробуем получить AggregateID через интерфейс, если есть
 		if agg, ok := e.(interface {
 			GetAggregateID() uuid.UUID
 		}); ok {
 			dto.AggregateID = agg.GetAggregateID().String()
 		} else {
-			// Если GetAggregateID недоступен, используем ID события как fallback
 			dto.AggregateID = event.GetID().String()
 		}
+
 		data, err := MarshalEventData(event)
 		if err != nil {
 			return EventDTO{}, errs.NewDomainValidationError("eventSerialization", "failed to serialize unknown event type")

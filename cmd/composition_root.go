@@ -11,7 +11,6 @@ import (
 	bcryptadapter "github.com/Vi-72/quest-auth/internal/adapters/out/bcrypt"
 	"github.com/Vi-72/quest-auth/internal/adapters/out/jwt"
 	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres"
-	"github.com/Vi-72/quest-auth/internal/adapters/out/postgres/eventrepo"
 	timeadapter "github.com/Vi-72/quest-auth/internal/adapters/out/time"
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/commands"
 	"github.com/Vi-72/quest-auth/internal/core/application/usecases/queries"
@@ -23,8 +22,7 @@ import (
 type CompositionRoot struct {
 	configs        Config
 	db             *gorm.DB
-	unitOfWork     ports.UnitOfWork
-	eventPublisher ports.EventPublisher
+	txManager      ports.TransactionManager
 	jwtService     ports.JWTService
 	passwordHasher ports.PasswordHasher
 	clock          ports.Clock
@@ -32,17 +30,7 @@ type CompositionRoot struct {
 }
 
 func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
-	// Create Unit of Work once during initialization
-	unitOfWork, err := postgres.NewUnitOfWork(db)
-	if err != nil {
-		log.Fatalf("cannot create UnitOfWork: %v", err)
-	}
-
-	// Create EventPublisher with same Tracker as UoW for transactionality
-	eventPublisher, err := eventrepo.NewRepository(unitOfWork.(ports.Tracker), configs.EventGoroutineLimit)
-	if err != nil {
-		log.Fatalf("cannot create EventPublisher: %v", err)
-	}
+	txManager := postgres.NewTransactionManager(db)
 
 	// Create JWT Service
 	jwtService := jwt.NewService(
@@ -58,8 +46,7 @@ func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
 	return &CompositionRoot{
 		configs:        configs,
 		db:             db,
-		unitOfWork:     unitOfWork,
-		eventPublisher: eventPublisher,
+		txManager:      txManager,
 		jwtService:     jwtService,
 		passwordHasher: passwordHasher,
 		clock:          clock,
@@ -67,14 +54,9 @@ func NewCompositionRoot(configs Config, db *gorm.DB) *CompositionRoot {
 	}
 }
 
-// GetUnitOfWork returns the single UnitOfWork instance
-func (cr *CompositionRoot) GetUnitOfWork() ports.UnitOfWork {
-	return cr.unitOfWork
-}
-
-// EventPublisher returns EventPublisher
-func (cr *CompositionRoot) EventPublisher() ports.EventPublisher {
-	return cr.eventPublisher
+// TransactionManager returns the transaction manager
+func (cr *CompositionRoot) TransactionManager() ports.TransactionManager {
+	return cr.txManager
 }
 
 // JWTService returns JWT service
@@ -97,8 +79,7 @@ func (cr *CompositionRoot) Clock() ports.Clock {
 // NewRegisterUserHandler creates a handler for user registration
 func (cr *CompositionRoot) NewRegisterUserHandler() *commands.RegisterUserHandler {
 	return commands.NewRegisterUserHandler(
-		cr.GetUnitOfWork(),
-		cr.EventPublisher(),
+		cr.TransactionManager(),
 		cr.JWTService(),
 		cr.PasswordHasher(),
 		cr.Clock(),
@@ -108,8 +89,7 @@ func (cr *CompositionRoot) NewRegisterUserHandler() *commands.RegisterUserHandle
 // NewLoginUserHandler creates a handler for user login
 func (cr *CompositionRoot) NewLoginUserHandler() *commands.LoginUserHandler {
 	return commands.NewLoginUserHandler(
-		cr.GetUnitOfWork(),
-		cr.EventPublisher(),
+		cr.TransactionManager(),
 		cr.JWTService(),
 		cr.PasswordHasher(),
 		cr.Clock(),

@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 
+	"github.com/Vi-72/quest-auth/internal/core/domain/model/auth"
 	"github.com/Vi-72/quest-auth/internal/core/domain/model/kernel"
 	"github.com/Vi-72/quest-auth/internal/core/ports"
 	"github.com/Vi-72/quest-auth/internal/pkg/errs"
@@ -10,23 +11,20 @@ import (
 
 // LoginUserHandler — обработчик входа пользователя
 type LoginUserHandler struct {
-	unitOfWork     ports.UnitOfWork
-	eventPublisher ports.EventPublisher
+	txManager      ports.TransactionManager
 	jwtService     ports.JWTService
 	passwordHasher ports.PasswordHasher
 	clock          ports.Clock
 }
 
 func NewLoginUserHandler(
-	unitOfWork ports.UnitOfWork,
-	eventPublisher ports.EventPublisher,
+	txManager ports.TransactionManager,
 	jwtService ports.JWTService,
 	passwordHasher ports.PasswordHasher,
 	clock ports.Clock,
 ) *LoginUserHandler {
 	return &LoginUserHandler{
-		unitOfWork:     unitOfWork,
-		eventPublisher: eventPublisher,
+		txManager:      txManager,
 		jwtService:     jwtService,
 		passwordHasher: passwordHasher,
 		clock:          clock,
@@ -41,26 +39,36 @@ func (h *LoginUserHandler) Handle(ctx context.Context, cmd LoginUserCommand) (Lo
 		return LoginUserResult{}, errs.NewDomainValidationError("email", err.Error())
 	}
 
-	userRepo := h.unitOfWork.UserRepository()
-	// Поиск пользователя по email
-	user, err := userRepo.GetByEmail(email)
-	if err != nil {
-		return LoginUserResult{}, errs.NewDomainValidationError("credentials", "invalid email or password")
-	}
+	var loggedInUser *auth.User
+	err = h.txManager.RunInTransaction(ctx, func(ctx context.Context, repos ports.Repositories) error {
+		userRepo := repos.User
 
-	// Проверка пароля
-	if !user.VerifyPassword(cmd.Password, h.passwordHasher) {
-		return LoginUserResult{}, errs.NewDomainValidationError("credentials", "invalid email or password")
-	}
+		user, err := userRepo.GetByEmail(email)
+		if err != nil {
+			return errs.NewDomainValidationError("credentials", "invalid email or password")
+		}
 
-	// Отметка о входе (создание доменного события)
-	user.MarkLoggedIn(h.clock)
+		if !user.VerifyPassword(cmd.Password, h.passwordHasher) {
+			return errs.NewDomainValidationError("credentials", "invalid email or password")
+		}
 
-	// Публикация доменных событий
-	err = h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())
+		user.MarkLoggedIn(h.clock)
+
+		if repos.Event != nil {
+			if err := repos.Event.Publish(ctx, user.GetDomainEvents()...); err != nil {
+				return err
+			}
+		}
+		user.ClearDomainEvents()
+
+		loggedInUser = user
+		return nil
+	})
 	if err != nil {
 		return LoginUserResult{}, err
 	}
+
+	user := loggedInUser
 
 	// Генерация токенов
 	tokenPair, err := h.jwtService.GenerateTokenPair(

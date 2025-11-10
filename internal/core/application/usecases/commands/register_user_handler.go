@@ -11,23 +11,20 @@ import (
 
 // RegisterUserHandler — обработчик регистрации пользователя
 type RegisterUserHandler struct {
-	unitOfWork     ports.UnitOfWork
-	eventPublisher ports.EventPublisher
+	txManager      ports.TransactionManager
 	jwtService     ports.JWTService
 	passwordHasher ports.PasswordHasher
 	clock          ports.Clock
 }
 
 func NewRegisterUserHandler(
-	unitOfWork ports.UnitOfWork,
-	eventPublisher ports.EventPublisher,
+	txManager ports.TransactionManager,
 	jwtService ports.JWTService,
 	passwordHasher ports.PasswordHasher,
 	clock ports.Clock,
 ) *RegisterUserHandler {
 	return &RegisterUserHandler{
-		unitOfWork:     unitOfWork,
-		eventPublisher: eventPublisher,
+		txManager:      txManager,
 		jwtService:     jwtService,
 		passwordHasher: passwordHasher,
 		clock:          clock,
@@ -48,46 +45,50 @@ func (h *RegisterUserHandler) Handle(ctx context.Context, cmd RegisterUserComman
 		return RegisterUserResult{}, errs.NewDomainValidationError("phone", err.Error())
 	}
 
-	userRepo := h.unitOfWork.UserRepository()
+	var createdUser auth.User
+	err = h.txManager.RunInTransaction(ctx, func(ctx context.Context, repos ports.Repositories) error {
+		userRepo := repos.User
 
-	// Проверка уникальности email
-	emailExists, err := userRepo.EmailExists(email)
-	if err != nil {
-		return RegisterUserResult{}, err
-	}
-	if emailExists {
-		return RegisterUserResult{}, errs.NewDomainValidationError("email", "email already exists")
-	}
-
-	// Проверка уникальности phone
-	phoneExists, err := userRepo.PhoneExists(phone)
-	if err != nil {
-		return RegisterUserResult{}, err
-	}
-	if phoneExists {
-		return RegisterUserResult{}, errs.NewDomainValidationError("phone", "phone already exists")
-	}
-
-	// Создание доменного объекта User
-	user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password, h.passwordHasher, h.clock)
-	if err != nil {
-		return RegisterUserResult{}, errs.NewDomainValidationError("user", err.Error())
-	}
-
-	// Сохранение в транзакции
-	err = h.unitOfWork.Execute(ctx, func() error {
-		repo := h.unitOfWork.UserRepository()
-		if createErr := repo.Create(&user); createErr != nil {
-			return createErr
+		emailExists, err := userRepo.EmailExists(email)
+		if err != nil {
+			return err
+		}
+		if emailExists {
+			return errs.NewDomainValidationError("email", "email already exists")
 		}
 
-		// Публикация доменных событий
-		return h.eventPublisher.PublishDomainEvents(ctx, user.GetDomainEvents())
-	})
+		phoneExists, err := userRepo.PhoneExists(phone)
+		if err != nil {
+			return err
+		}
+		if phoneExists {
+			return errs.NewDomainValidationError("phone", "phone already exists")
+		}
 
+		user, err := auth.NewUser(email, phone, cmd.Name, cmd.Password, h.passwordHasher, h.clock)
+		if err != nil {
+			return errs.NewDomainValidationError("user", err.Error())
+		}
+
+		if err := userRepo.Create(&user); err != nil {
+			return err
+		}
+
+		if repos.Event != nil {
+			if err := repos.Event.Publish(ctx, user.GetDomainEvents()...); err != nil {
+				return err
+			}
+		}
+		user.ClearDomainEvents()
+
+		createdUser = user
+		return nil
+	})
 	if err != nil {
 		return RegisterUserResult{}, err
 	}
+
+	user := createdUser
 
 	// Генерация токенов
 	tokenPair, err := h.jwtService.GenerateTokenPair(

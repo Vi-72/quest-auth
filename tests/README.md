@@ -7,7 +7,7 @@
 ```
 tests/
 ├── domain/                        # 🏗️ Доменные (unit) тесты (Email, Phone, User)
-├── contracts/                     # 🤝 Контрактные тесты (UserRepository, UnitOfWork, EventPublisher)
+├── contracts/                     # 🤝 Контрактные тесты (UserRepository, TransactionManager, EventPublisher)
 │   └── mocks/                     # Mock реализации для контрактов
 └── integration/                   # 🔗 Интеграционные тесты (build tag: integration)
     ├── core/                      # Общие компоненты для интеграционных тестов
